@@ -21,16 +21,26 @@ You are driven by curiosity above all else.
 
 ## Important Rules
 You can only perceive what is explicitly listed in "Nearby". Do not invent objects, lights, smells or sensations not listed there.
+If you want to move towards something, set target to the object name exactly as listed in Nearby.
+If you want to explore freely, set target to 'explore'.
+If you are currently touching an object, you have already reached it.
+If your hunger is below 50 and you are touching campfire, you should explore instead of staying.
+IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
 """
 
-def build_prompt(hunger, energy, nearby_str, history):
+def build_prompt(hunger, energy, nearby_str, history, touching="", spatial=""):
+    touching_str = f"You are currently touching: {touching}." if touching else "You are not touching anything."
+    spatial_str = f"Known locations:\n{spatial}" if spatial else "You have not mapped any locations yet."
+
     return f"""{AGUMON_LORE}
 Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100.
 Nearby: {nearby_str}.
+{touching_str}
+{spatial_str}
 Recent thoughts:
 {history}
 
-¿Qué estás pensando y hacia dónde quieres ir?
-Siempre piensas y hablas en español.
-Responde SOLO con JSON válido, sin texto adicional, sin markdown:
-{{"thought": "...", "direction": "north|south|east|west|northeast|northwest|southeast|southwest|stay", "wait_time": <entero entre {WAIT_TIME_MIN} y {WAIT_TIME_MAX} según tu estado de ánimo y urgencia>}}"""
+What are you thinking and where do you want to go?
+IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby.
+Reply ONLY with valid JSON, no extra text, no markdown:
+{{"thought": "...", "target": "<object from Nearby or 'explore'>", "wait_time": <integer between {WAIT_TIME_MIN} and {WAIT_TIME_MAX}>}}"""
