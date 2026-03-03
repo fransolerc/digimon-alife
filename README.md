@@ -30,9 +30,10 @@ UE5 (body) ←→ Python (brain)
 - [x] Touching detection (proximity-based interaction with environment)
 - [x] Agent-controlled action frequency (wait_time)
 - [x] Basic interaction with environment (campfire restores hunger)
+- [x] Persistent memory (save/load across sessions)
+- [x] Reflection and abstraction from episodic memory
+- [x] Fixation detection (forces exploration when agent gets stuck)
 - [x] Animations (idle, walk)
-- [ ] Persistent memory (save/load across sessions)
-- [ ] Reflection and abstraction from episodic memory
 - [ ] Multiple Digimon agents
 - [ ] AI Perception (vision cone)
 - [ ] Causal learning from experience
@@ -52,8 +53,9 @@ UE5 (body) ←→ Python (brain)
 ├── config.py            # Configuration and parameters
 ├── agent/
 │   ├── digimon.py       # Agent logic and state
-│   ├── memory.py        # Short-term and spatial memory system
+│   ├── memory.py        # Short-term, spatial and reflection memory system
 │   └── prompt.py        # LLM prompt construction and lore
+├── data/                # Persistent memory storage (local only)
 ├── README.md
 └── UE5/                 # Unreal Engine project
     └── BP_Agumon        # Agent Character Blueprint
@@ -84,6 +86,8 @@ The agent has two internal states that evolve over time:
 - **Energy**: decreases over time. Reserved for future rest behavior.
 
 Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
+
+Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected, exploration is forced to break repetitive behavior.
 
 ## Motivation
 
