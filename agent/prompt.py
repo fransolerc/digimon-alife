@@ -28,15 +28,17 @@ If your hunger is below 50 and you are touching campfire, you should explore ins
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
 """
 
-def build_prompt(hunger, energy, nearby_str, history, touching="", spatial=""):
+def build_prompt(hunger, energy, nearby_str, history, touching="", spatial="", reflections=""):
     touching_str = f"You are currently touching: {touching}." if touching else "You are not touching anything."
     spatial_str = f"Known locations:\n{spatial}" if spatial else "You have not mapped any locations yet."
+    reflections_str = f"Your reflections:\n{reflections}" if reflections else "No reflections yet."
 
     return f"""{AGUMON_LORE}
 Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100.
 Nearby: {nearby_str}.
 {touching_str}
 {spatial_str}
+{reflections_str}
 Recent thoughts:
 {history}
 

@@ -11,6 +11,8 @@ class Memory:
     def __init__(self):
         self.entries = []
         self.spatial = {}
+        self.reflections = []
+        self.cycle_count = 0
         self.load()
 
     def add(self, thought):
@@ -54,7 +56,9 @@ class Memory:
             with open(MEMORY_FILE, "w") as f:
                 json.dump({
                     "entries": self.entries,
-                    "spatial": self.spatial
+                    "spatial": self.spatial,
+                    "reflections": self.reflections,
+                    "cycle_count": self.cycle_count
                 }, f, indent=2)
         except Exception as e:
             print(f"Memory save error: {e}")
@@ -66,6 +70,8 @@ class Memory:
                     data = json.load(f)
                     self.entries = data.get("entries", [])
                     self.spatial = data.get("spatial", {})
+                    self.reflections = data.get("reflections", [])
+                    self.cycle_count = data.get("cycle_count", 0)
                 print(f"Memory loaded: {len(self.entries)} thoughts, {len(self.spatial)} locations")
             else:
                 print("No previous memory found, starting fresh.")
@@ -76,3 +82,15 @@ class Memory:
         self.entries = []
         self.spatial = {}
         self.save()
+
+    def add_reflection(self, reflection):
+        if reflection:
+            self.reflections.append(reflection)
+            if len(self.reflections) > 5:
+                self.reflections.pop(0)
+            self.save()
+
+    def get_reflections_context(self):
+        if not self.reflections:
+            return "No reflections yet."
+        return "\n".join(self.reflections)

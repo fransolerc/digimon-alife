@@ -6,7 +6,8 @@ from config import (
     MODEL, HUNGER_INCREASE, ENERGY_DECREASE,
     HUNGER_MAX, ENERGY_MIN, TOUCH_DISTANCE,
     CAMPFIRE_HUNGER_RESTORE,
-    WAIT_TIME_DEFAULT, WAIT_TIME_MIN, WAIT_TIME_MAX
+    WAIT_TIME_DEFAULT, WAIT_TIME_MIN, WAIT_TIME_MAX,
+    FIXATION_KEYWORDS
 )
 
 class Digimon:
@@ -17,6 +18,7 @@ class Digimon:
         self.y = 0.0
         self.memory = Memory()
         self.processing = False
+        self.memory.force_explore = False
 
     def angle_to_offset(self, angle, distance=2000):
         import math
@@ -76,14 +78,15 @@ class Digimon:
             self.hunger = max(ENERGY_MIN, self.hunger - CAMPFIRE_HUNGER_RESTORE)
             print("Digimon eats from the campfire!")
 
-    def think(self, nearby_str, touching="", spatial=""):
+    def think(self, nearby_str, touching="", spatial="", reflections=""):
         prompt = build_prompt(
             self.hunger,
             self.energy,
             nearby_str,
             self.memory.get_context(),
             touching,
-            spatial
+            spatial,
+            reflections
         )
         response = ollama.chat(
             model=MODEL,
@@ -114,7 +117,7 @@ class Digimon:
         self.memory.update_spatial(digimon_x, digimon_y, nearby)
 
         try:
-            result = self.think(nearby_str, touching, self.memory.get_spatial_context())
+            result = self.think(nearby_str, touching, self.memory.get_spatial_context(), self.memory.get_reflections_context())
 
             thought = result.get("thought", "")
             target = result.get("target", "explore")
@@ -122,18 +125,28 @@ class Digimon:
 
             self.memory.add(thought)
 
+            self.memory.cycle_count += 1
+            if self.memory.cycle_count % 5 == 0:
+                self.reflect()
+
             print(f"Digimon thinks: {thought}")
             print(f"Target: {target} | Wait: {wait_time}s")
             if touching:
                 print(f"Touching: {touching}")
 
-            offset = self.get_target_offset(target, nearby)
-            if offset:
-                offset_x, offset_y = offset
-            else:
+            if self.memory.force_explore:
+                self.memory.force_explore = False
                 import random
                 offset_x = random.randint(-2000, 2000)
                 offset_y = random.randint(-2000, 2000)
+            else:
+                offset = self.get_target_offset(target, nearby)
+                if offset:
+                    offset_x, offset_y = offset
+                else:
+                    import random
+                    offset_x = random.randint(-2000, 2000)
+                    offset_y = random.randint(-2000, 2000)
 
             print(f"Sending offset: {offset_x}, {offset_y}")
 
@@ -150,3 +163,34 @@ class Digimon:
 
         finally:
             self.processing = False
+
+    def reflect(self):
+        if len(self.memory.entries) < 5:
+            return
+
+        thoughts = "\n".join(self.memory.entries[-5:])
+        prompt = f"""You are Agumon, a curious Digimon inhabiting a digital forest.
+    These are your last 5 thoughts:
+    {thoughts}
+
+    Based on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have learned or concluded.
+    Reply ONLY with the reflection text, no JSON, no extra formatting."""
+
+        try:
+            response = ollama.chat(
+                model=MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            reflection = response["message"]["content"].strip()
+            self.memory.add_reflection(reflection)
+            print(f"Reflection: {reflection}")
+            self._check_fixation(reflection)
+        except Exception as e:
+            print(f"Reflection error: {e}")
+
+
+    def _check_fixation(self, reflection):
+        reflection_lower = reflection.lower()
+        if any(word in reflection_lower for word in FIXATION_KEYWORDS):
+            print("Fixation detected, forcing exploration.")
+            self.memory.force_explore = True

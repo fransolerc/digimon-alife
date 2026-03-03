@@ -18,3 +18,5 @@ MEMORY_CONTEXT_SIZE = 3
 WAIT_TIME_MIN = 8
 WAIT_TIME_MAX = 20
 WAIT_TIME_DEFAULT = 10
+
+FIXATION_KEYWORDS = ["fixated", "same", "again", "repeatedly", "keep", "stuck", "only", "always"]
