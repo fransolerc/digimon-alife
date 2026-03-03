@@ -25,10 +25,13 @@ UE5 (body) ←→ Python (brain)
 - [x] Spatial perception (nearby objects with angle and distance)
 - [x] LLM-based reasoning and decision-making in natural language
 - [x] Short-term memory (recent thoughts influence future decisions)
+- [x] Spatial memory (known object locations persist across perception cycles)
+- [x] Target-based movement (agent moves toward specific objects using angle and distance)
+- [x] Touching detection (proximity-based interaction with environment)
 - [x] Agent-controlled action frequency (wait_time)
 - [x] Basic interaction with environment (campfire restores hunger)
 - [x] Animations (idle, walk)
-- [ ] Persistent memory
+- [ ] Persistent memory (save/load across sessions)
 - [ ] Reflection and abstraction from episodic memory
 - [ ] Multiple Digimon agents
 - [ ] AI Perception (vision cone)
@@ -49,7 +52,7 @@ UE5 (body) ←→ Python (brain)
 ├── config.py            # Configuration and parameters
 ├── agent/
 │   ├── digimon.py       # Agent logic and state
-│   ├── memory.py        # Short-term memory system
+│   ├── memory.py        # Short-term and spatial memory system
 │   └── prompt.py        # LLM prompt construction and lore
 ├── README.md
 └── UE5/                 # Unreal Engine project
@@ -80,7 +83,7 @@ The agent has two internal states that evolve over time:
 - **Hunger**: increases over time. Restored by interacting with food sources like campfires.
 - **Energy**: decreases over time. Reserved for future rest behavior.
 
-Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a direction and how long to wait before the next decision.
+Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
 
 ## Motivation
 
