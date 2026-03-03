@@ -1,10 +1,10 @@
-# Agumon AI - Artificial Life in Unreal Engine 5
+# Digimon ALife - Artificial Life in Unreal Engine 5
 
-A personal experiment in artificial life where an Agumon autonomously inhabits a virtual forest, making decisions driven by an external Python-based brain.
+An experiment in artificial life where an Agumon autonomously inhabits a digital forest, making decisions driven by an LLM-based brain with spatial perception and internal needs.
 
 ## Description
 
-The agent perceives its environment, maintains internal states (hunger, energy) and decides its actions without any user input. The goal is to observe what behaviors emerge from the interaction between the agent and its environment.
+The agent perceives its environment through spatial awareness, maintains internal states (hunger, energy) and reasons about its situation using a local LLM. The goal is to observe what behaviors emerge from the interaction between the agent and its environment, without explicit programming of those behaviors.
 
 ## Architecture
 
@@ -13,31 +13,44 @@ UE5 (body) ←→ Python (brain)
 ```
 
 - **Unreal Engine 5** handles the 3D environment, navigation (NavMesh), animations and action execution
-- **Python + Flask** contains the agent's logic: internal states, decision-making, and in the future memory and language
-- Communication is bidirectional via **local HTTP** every N seconds
+- **Python + Flask** contains the agent's logic: internal states, spatial perception processing, LLM reasoning and memory
+- **Ollama + Gemma 3 4B** runs locally as the agent's reasoning engine
+- Communication is bidirectional via **local HTTP**, frequency determined by the agent itself
 
 ## Current Status
 
 - [x] Bidirectional communication UE5 ↔ Python
 - [x] Agumon navigates a forest using NavMesh
 - [x] Internal state system (hunger, energy)
-- [x] Autonomous decision-making based on needs
+- [x] Spatial perception (nearby objects with angle and distance)
+- [x] LLM-based reasoning and decision-making in natural language
+- [x] Short-term memory (recent thoughts influence future decisions)
+- [x] Agent-controlled action frequency (wait_time)
+- [x] Basic interaction with environment (campfire restores hunger)
 - [x] Animations (idle, walk)
-- [ ] Environment perception (semantic zones)
 - [ ] Persistent memory
-- [ ] Natural language interaction (LLM)
+- [ ] Reflection and abstraction from episodic memory
+- [ ] Multiple Digimon agents
+- [ ] AI Perception (vision cone)
+- [ ] Causal learning from experience
 
 ## Technologies
 
 - Unreal Engine 5.7
 - Python 3.x
 - Flask
+- Ollama + Gemma 3 4B
 
 ## Project Structure
 
 ```
 /
-├── servidor.py          # Agent brain in Python
+├── main.py              # Flask server entry point
+├── config.py            # Configuration and parameters
+├── agent/
+│   ├── digimon.py       # Agent logic and state
+│   ├── memory.py        # Short-term memory system
+│   └── prompt.py        # LLM prompt construction and lore
 ├── README.md
 └── UE5/                 # Unreal Engine project
     └── BP_Agumon        # Agent Character Blueprint
@@ -45,26 +58,30 @@ UE5 (body) ←→ Python (brain)
 
 ## How to Run
 
-**1. Start the Python server:**
+**1. Install Ollama and pull the model:**
 ```bash
-pip install flask
-python servidor.py
+ollama pull gemma3:4b
 ```
 
-**2. Open the project in UE5 and press Play**
+**2. Start the Python server:**
+```bash
+pip install flask ollama
+python main.py
+```
 
-Agumon will start sending its position to Python every 5 seconds and receiving movement orders in return.
+**3. Open the project in UE5 and press Play**
 
-## Agent Brain (servidor.py)
+Agumon will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
 
-The agent has three internal states that change over time:
+## Agent Brain
 
-- **Hunger**: increases over time. If it exceeds 70, the agent looks for food.
-- **Energy**: decreases over time. If it drops below 30, the agent rests.
-- **Curiosity**: reserved for future exploratory behavior.
+The agent has two internal states that evolve over time:
 
-The most urgent need determines the action.
+- **Hunger**: increases over time. Restored by interacting with food sources like campfires.
+- **Energy**: decreases over time. Reserved for future rest behavior.
+
+Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a direction and how long to wait before the next decision.
 
 ## Motivation
 
-To explore how far it is possible to simulate believable artificial life in a real-time 3D environment, combining game development tools with modern AI architectures.
+To explore how far it is possible to simulate believable artificial life in a real-time 3D environment, combining game development tools with modern AI architectures. Inspired by artificial life research from the 90s and the philosophical questions around emergence, intelligence and consciousness in digital entities.
