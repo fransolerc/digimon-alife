@@ -13,6 +13,8 @@ class Digimon:
     def __init__(self):
         self.hunger = 50.0
         self.energy = 100.0
+        self.x = 0.0
+        self.y = 0.0
         self.memory = Memory()
         self.processing = False
 
@@ -30,13 +32,24 @@ class Digimon:
         if target == "explore" or not nearby or not isinstance(nearby[0], dict):
             return None
         target_lower = target.lower().strip()
+
+        # buscar en nearby primero
         for item in nearby:
             object_lower = item["object"].lower().strip()
             if object_lower == target_lower or object_lower in target_lower or target_lower in object_lower:
-                print(f"Target matched: '{target}' → '{item['object']}'")
-                distance = max(item["distance"], 300)
+                print(f"Target matched in nearby: '{target}'")
+                distance = max(item["distance"], 200)
                 return self.angle_to_offset(item["angle"], distance)
-        print(f"Target not found: '{target}' not in {[i['object'] for i in nearby]}")
+
+        # fallback a memoria espacial
+        for obj_name, data in self.memory.spatial.items():
+            if obj_name.lower().strip() == target_lower or target_lower in obj_name.lower().strip():
+                print(f"Target matched in spatial memory: '{target}' at ({data['x']}, {data['y']})")
+                offset_x = round(data["x"] - self.x)
+                offset_y = round(data["y"] - self.y)
+                return (offset_x, offset_y)
+
+        print(f"Target not found: '{target}'")
         return None
 
     def update_needs(self):
@@ -46,7 +59,7 @@ class Digimon:
     def parse_nearby(self, nearby):
         if nearby and isinstance(nearby[0], dict):
             return ", ".join([
-                f"{item['object']} (angle: {item['angle']:.1f}°, distance: {item['distance']:.0f})"
+                f"{item['object'].strip()} (angle: {item['angle']:.1f}°, distance: {item['distance']:.0f})"
                 for item in nearby
             ])
         return "nothing..."
@@ -55,7 +68,7 @@ class Digimon:
         if nearby and isinstance(nearby[0], dict):
             for item in nearby:
                 if item["distance"] < TOUCH_DISTANCE:
-                    return item["object"]
+                    return item["object"].strip()
         return ""
 
     def handle_touching(self, touching):
@@ -88,8 +101,12 @@ class Digimon:
         self.update_needs()
 
         nearby = data.get("nearby", [])
+
         digimon_x = data.get("x", 0)
         digimon_y = data.get("y", 0)
+        print(f"Digimon position: {digimon_x}, {digimon_y}")
+        self.x = digimon_x
+        self.y = digimon_y
 
         touching = self.get_touching(nearby)
         self.handle_touching(touching)
@@ -117,6 +134,8 @@ class Digimon:
                 import random
                 offset_x = random.randint(-2000, 2000)
                 offset_y = random.randint(-2000, 2000)
+
+            print(f"Sending offset: {offset_x}, {offset_y}")
 
             return {
                 "offset_x": offset_x,
