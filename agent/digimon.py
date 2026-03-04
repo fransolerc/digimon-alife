@@ -2,7 +2,7 @@ import ollama
 import json
 import random
 from agent.memory import Memory
-from agent.prompt import build_prompt
+from agent.prompt import build_prompt, REFLECTION_PROMPT
 from agent.utils import angle_to_offset
 from config import (
     MODEL, HUNGER_INCREASE, ENERGY_DECREASE,
@@ -169,12 +169,7 @@ class Digimon:
             return
 
         thoughts = "\n".join(self.memory.entries[-5:])
-        prompt = f"""You are Agumon, a curious Digimon inhabiting a digital forest.
-    These are your last 5 thoughts:
-    {thoughts}
-
-    Based on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have learned or concluded.
-    Reply ONLY with the reflection text, no JSON, no extra formatting."""
+        prompt = REFLECTION_PROMPT.format(thoughts=thoughts)
 
         try:
             response = ollama.chat(

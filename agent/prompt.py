@@ -27,6 +27,14 @@ If your hunger is below 50 and you are touching campfire, you should explore ins
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
 """
 
+REFLECTION_PROMPT = """You are Agumon, a curious Digimon inhabiting a digital forest.
+These are your last 5 thoughts:
+{thoughts}
+
+Based on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have learned or concluded.
+Reply ONLY with the reflection text, no JSON, no extra formatting."""
+
+
 def build_prompt(hunger, energy, nearby_str, history, touching="", spatial="", reflections=""):
     """
     Constructs the prompt for the LLM based on the agent's current state and memory.
