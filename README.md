@@ -4,7 +4,7 @@ An experiment in artificial life where an Agumon autonomously inhabits a digital
 
 ## Description
 
-The agent perceives its environment through spatial awareness, maintains internal states (hunger, energy) and reasons about its situation using a local LLM. The goal is to observe what behaviors emerge from the interaction between the agent and its environment, without explicit programming of those behaviors.
+The agent perceives its environment through spatial awareness, maintains internal states (hunger, energy, curiosity) and reasons about its situation using a local LLM. The goal is to observe what behaviors emerge from the interaction between the agent and its environment, without explicit programming of those behaviors.
 
 ## Architecture
 
@@ -21,7 +21,7 @@ UE5 (body) ←→ Python (brain)
 
 - [x] Bidirectional communication UE5 ↔ Python
 - [x] Agumon navigates a forest using NavMesh
-- [x] Internal state system (hunger, energy)
+- [x] Internal state system (hunger, energy, curiosity)
 - [x] Spatial perception (nearby objects with angle and distance)
 - [x] LLM-based reasoning and decision-making in natural language
 - [x] Short-term memory (recent thoughts influence future decisions)
@@ -29,13 +29,13 @@ UE5 (body) ←→ Python (brain)
 - [x] Target-based movement (agent moves toward specific objects using angle and distance)
 - [x] Touching detection (proximity-based interaction with environment)
 - [x] Agent-controlled action frequency (wait_time)
-- [x] Basic interaction with environment (campfire restores hunger)
+- [x] Basic interaction with environment (campfire restores hunger, tent restores energy)
 - [x] Persistent memory (save/load across sessions)
 - [x] Reflection and abstraction from episodic memory
 - [x] Fixation detection (forces exploration when agent gets stuck)
+- [x] AI Perception (vision cone)
 - [x] Animations (idle, walk)
 - [ ] Multiple Digimon agents
-- [ ] AI Perception (vision cone)
 - [ ] Causal learning from experience
 
 ## Technologies
@@ -81,14 +81,15 @@ Agumon will begin perceiving its environment, reasoning about what it finds and 
 
 ## Agent Brain
 
-The agent has two internal states that evolve over time:
+The agent has three internal states that evolve over time:
 
-- **Hunger**: increases over time. Restored by interacting with food sources like campfires.
-- **Energy**: decreases over time. Reserved for future rest behavior.
+- **Hunger**: increases over time. Restored by interacting with campfires.
+- **Energy**: decreases over time. Restored by resting in the tent.
+- **Curiosity**: increases over time. Decreases when exploring new areas.
 
 Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
 
-Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (repetitive thoughts), exploration is forced to break the loop.
+Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop.
 
 ## Motivation
 
