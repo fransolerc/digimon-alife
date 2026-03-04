@@ -52,9 +52,10 @@ UE5 (body) ←→ Python (brain)
 ├── main.py              # Flask server entry point
 ├── config.py            # Configuration and parameters
 ├── agent/
-│   ├── digimon.py       # Agent logic and state
+│   ├── digimon.py       # Agent logic and state machine
 │   ├── memory.py        # Short-term, spatial and reflection memory system
-│   └── prompt.py        # LLM prompt construction and lore
+│   ├── prompt.py        # LLM prompt construction and lore
+│   └── utils.py         # Mathematical utility functions
 ├── data/                # Persistent memory storage (local only)
 ├── README.md
 └── UE5/                 # Unreal Engine project
@@ -87,7 +88,7 @@ The agent has two internal states that evolve over time:
 
 Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
 
-Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected, exploration is forced to break repetitive behavior.
+Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (repetitive thoughts), exploration is forced to break the loop.
 
 ## Motivation
 
