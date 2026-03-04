@@ -5,22 +5,22 @@ from agent.memory import Memory
 from agent.prompt import build_prompt, REFLECTION_PROMPT
 from agent.utils import angle_to_offset
 from config import (
-    MODEL, HUNGER_INCREASE, ENERGY_DECREASE,
-    HUNGER_MAX, ENERGY_MIN, TOUCH_DISTANCE,
-    CAMPFIRE_HUNGER_RESTORE,
+    MODEL, HUNGER_INCREASE, ENERGY_DECREASE, CURIOSITY_INCREASE, CURIOSITY_DECREASE,
+    HUNGER_MAX, HUNGER_MIN, ENERGY_MAX, ENERGY_MIN, CURIOSITY_MAX, CURIOSITY_MIN,
+    TOUCH_DISTANCE, HUNGER_EAT, ENERGY_RESTORE,
     WAIT_TIME_DEFAULT, WAIT_TIME_MIN, WAIT_TIME_MAX,
-    FIXATION_KEYWORDS
+    FIXATION_TARGET_COUNT
 )
 
 class Digimon:
     def __init__(self):
-        self.hunger = 50.0
-        self.energy = 100.0
+        self.memory = Memory()
+        self.hunger = self.memory.hunger
+        self.energy = self.memory.energy
+        self.curiosity = self.memory.curiosity
         self.x = 0.0
         self.y = 0.0
-        self.memory = Memory()
         self.processing = False
-        self.memory.force_explore = False
 
     def get_target_offset(self, target, nearby):
         if target == "explore" or not nearby or not isinstance(nearby[0], dict):
@@ -77,18 +77,22 @@ class Digimon:
 
     def handle_touching(self, touching):
         if touching == "campfire":
-            self.hunger = max(ENERGY_MIN, self.hunger - CAMPFIRE_HUNGER_RESTORE)
+            self.hunger = max(HUNGER_MIN, self.hunger - HUNGER_EAT)
             print("Digimon eats from the campfire!")
+        elif touching == "tent":
+            self.energy = min(ENERGY_MAX, self.energy + ENERGY_RESTORE)
+            print("Digimon rests in the tent!")
 
     def think(self, nearby_str, touching="", spatial="", reflections=""):
         prompt = build_prompt(
             self.hunger,
             self.energy,
+            self.curiosity,
             nearby_str,
             self.memory.get_context(),
-            touching,
-            spatial,
-            reflections
+            touching=touching,
+            spatial=spatial,
+            reflections=reflections
         )
         response = ollama.chat(
             model=MODEL,
@@ -117,6 +121,9 @@ class Digimon:
         wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
 
         self.memory.add(thought)
+        self.memory.add_target(target)
+        if target == "explore":
+            self.curiosity = max(CURIOSITY_MIN, self.curiosity - CURIOSITY_DECREASE)
         self.memory.cycle_count += 1
         if self.memory.cycle_count % 5 == 0:
             self.reflect()
@@ -160,6 +167,11 @@ class Digimon:
             target, thought, wait_time = self._run_thought_cycle(nearby_str, touching)
             offset_x, offset_y = self._determine_action(target, nearby)
 
+            self.memory.hunger = self.hunger
+            self.memory.energy = self.energy
+            self.memory.curiosity = self.curiosity
+            self.memory.save()
+
             return {
                 "offset_x": offset_x,
                 "offset_y": offset_y,
@@ -189,13 +201,13 @@ class Digimon:
             reflection = response["message"]["content"].strip()
             self.memory.add_reflection(reflection)
             print(f"Reflection: {reflection}")
-            self._check_fixation(reflection)
+            self._check_fixation()
         except Exception as e:
             print(f"Reflection error: {e}")
 
 
-    def _check_fixation(self, reflection):
-        reflection_lower = reflection.lower()
-        if any(word in reflection_lower for word in FIXATION_KEYWORDS):
-            print("Fixation detected, forcing exploration.")
-            self.memory.force_explore = True
+    def _check_fixation(self):
+        if len(self.memory.recent_targets) >= FIXATION_TARGET_COUNT:
+            if len(set(self.memory.recent_targets)) == 1:
+                print("Fixation detected, forcing exploration.")
+                self.memory.force_explore = True

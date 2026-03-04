@@ -24,6 +24,8 @@ If you want to move towards something, set target to the object name exactly as 
 If you want to explore freely, set target to 'explore'.
 If you are currently touching an object, you have already reached it.
 If your hunger is below 50 and you are touching campfire, you should explore instead of staying.
+If your energy is below 50 and you are touching tent, you should rest instead of leaving.
+The tent is a place to rest and recover energy.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
 """
 
@@ -35,7 +37,7 @@ Based on these thoughts, write a brief reflection (2-3 sentences) summarizing wh
 Reply ONLY with the reflection text, no JSON, no extra formatting."""
 
 
-def build_prompt(hunger, energy, nearby_str, history, touching="", spatial="", reflections=""):
+def build_prompt(hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections=""):
     """
     Constructs the prompt for the LLM based on the agent's current state and memory.
 
@@ -56,7 +58,7 @@ def build_prompt(hunger, energy, nearby_str, history, touching="", spatial="", r
     reflections_str = f"Your reflections:\n{reflections}" if reflections else "No reflections yet."
 
     return f"""{AGUMON_LORE}
-Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100.
+Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100, curiosity {curiosity:.0f}/100.
 Nearby: {nearby_str}.
 {touching_str}
 {spatial_str}

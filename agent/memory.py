@@ -2,14 +2,22 @@ import time
 import json
 import math
 import os
-from config import MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE, MEMORY_FILE
+from config import (
+    MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE, MEMORY_FILE,
+    ENERGY_MAX, HUNGER_MIN, CURIOSITY_MAX, FIXATION_TARGET_COUNT
+)
 
 class Memory:
     def __init__(self):
         self.entries = []
         self.spatial = {}
         self.reflections = []
+        self.recent_targets = []
         self.cycle_count = 0
+        self.hunger = 50.0
+        self.energy = 100.0
+        self.curiosity = 50.0
+        self.force_explore = False
         self.load()
 
     def add(self, thought):
@@ -57,11 +65,15 @@ class Memory:
             os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
             with open(MEMORY_FILE, "w") as f:
                 json.dump({
-                    "entries": self.entries,
-                    "spatial": self.spatial,
-                    "reflections": self.reflections,
-                    "cycle_count": self.cycle_count
-                }, f, indent=2)
+                                   "entries": self.entries,
+                                   "spatial": self.spatial,
+                                   "reflections": self.reflections,
+                                   "cycle_count": self.cycle_count,
+                                   "recent_targets": self.recent_targets,
+                                   "hunger": self.hunger,
+                                   "energy": self.energy,
+                                   "curiosity": self.curiosity
+                               }, f, indent=2)
         except Exception as e:
             print(f"Memory save error: {e}")
 
@@ -74,6 +86,10 @@ class Memory:
                     self.spatial = data.get("spatial", {})
                     self.reflections = data.get("reflections", [])
                     self.cycle_count = data.get("cycle_count", 0)
+                    self.recent_targets = data.get("recent_targets", [])
+                    self.hunger = data.get("hunger", 50.0)
+                    self.energy = data.get("energy", 100.0)
+                    self.curiosity = data.get("curiosity", 50.0)
                 print(f"Memory loaded: {len(self.entries)} thoughts, {len(self.spatial)} locations")
             else:
                 print("No previous memory found, starting fresh.")
@@ -98,3 +114,9 @@ class Memory:
         if not self.reflections:
             return "No reflections yet."
         return "\n".join(self.reflections)
+
+    def add_target(self, target):
+        self.recent_targets.append(target)
+        if len(self.recent_targets) > FIXATION_TARGET_COUNT:
+            self.recent_targets.pop(0)
+        self.save()

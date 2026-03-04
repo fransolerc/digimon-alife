@@ -12,5 +12,16 @@ def receive_state():
     response = agumon.process(data)
     return jsonify(response)
 
+@app.route('/status', methods=['GET'])
+def get_status():
+    return jsonify({
+        "hunger": round(agumon.hunger, 1),
+        "energy": round(agumon.energy, 1),
+        "curiosity": round(agumon.curiosity, 1),
+        "cycle": agumon.memory.cycle_count,
+        "recent_targets": agumon.memory.recent_targets,
+        "processing": agumon.processing
+    })
+
 if __name__ == '__main__':
     app.run(port=PORT)
