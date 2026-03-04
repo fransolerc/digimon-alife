@@ -50,10 +50,20 @@ class Digimon:
         self.hunger = min(HUNGER_MAX, self.hunger + HUNGER_INCREASE)
         self.energy = max(ENERGY_MIN, self.energy - ENERGY_DECREASE)
 
+    def distance_label(self, distance):
+        if distance < 200:
+            return "very close"
+        elif distance < 500:
+            return "nearby"
+        elif distance < 1000:
+            return "moderate distance"
+        else:
+            return "far away"
+
     def parse_nearby(self, nearby):
         if nearby and isinstance(nearby[0], dict):
             return ", ".join([
-                f"{item['object'].strip()} (angle: {item['angle']:.1f}°, distance: {item['distance']:.0f})"
+                f"{item['object'].strip()} ({self.distance_label(item['distance'])})"
                 for item in nearby
             ])
         return "nothing..."
