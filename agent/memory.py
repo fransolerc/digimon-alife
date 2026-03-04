@@ -1,11 +1,8 @@
-# agent/memory.py
 import time
 import json
 import math
 import os
-from config import MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE
-
-MEMORY_FILE = "data/memory.json"
+from config import MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE, MEMORY_FILE
 
 class Memory:
     def __init__(self):
@@ -25,10 +22,15 @@ class Memory:
     def update_spatial(self, agumon_x, agumon_y, nearby):
         if not nearby or not isinstance(nearby[0], dict):
             return
+
         for item in nearby:
             angle_rad = math.radians(item["angle"])
+            # Calculate object position relative to agent
+            # Assuming angle is absolute or relative to a fixed coordinate system
+            # x = sin(angle), y = cos(angle) based on angle_to_offset logic
             obj_x = agumon_x + round(math.sin(angle_rad) * item["distance"])
             obj_y = agumon_y + round(math.cos(angle_rad) * item["distance"])
+
             obj_name = item["object"].strip()
             self.spatial[obj_name] = {
                 "x": obj_x,
@@ -52,7 +54,7 @@ class Memory:
 
     def save(self):
         try:
-            os.makedirs("data", exist_ok=True)
+            os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
             with open(MEMORY_FILE, "w") as f:
                 json.dump({
                     "entries": self.entries,
@@ -81,6 +83,8 @@ class Memory:
     def clear(self):
         self.entries = []
         self.spatial = {}
+        self.reflections = []
+        self.cycle_count = 0
         self.save()
 
     def add_reflection(self, reflection):

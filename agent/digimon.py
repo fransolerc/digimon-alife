@@ -1,7 +1,9 @@
 import ollama
 import json
+import random
 from agent.memory import Memory
 from agent.prompt import build_prompt
+from agent.utils import angle_to_offset
 from config import (
     MODEL, HUNGER_INCREASE, ENERGY_DECREASE,
     HUNGER_MAX, ENERGY_MIN, TOUCH_DISTANCE,
@@ -20,30 +22,20 @@ class Digimon:
         self.processing = False
         self.memory.force_explore = False
 
-    def angle_to_offset(self, angle, distance=2000):
-        import math
-        rad = math.radians(angle)
-        x = math.cos(rad)
-        y = math.sin(rad)
-        offset_x = round(y * distance)
-        offset_y = round(x * distance)
-        print(f"Angle: {angle}° → offset_x: {offset_x}, offset_y: {offset_y}")
-        return (offset_x, offset_y)
-
     def get_target_offset(self, target, nearby):
         if target == "explore" or not nearby or not isinstance(nearby[0], dict):
             return None
         target_lower = target.lower().strip()
 
-        # buscar en nearby primero
+        # Search in nearby first
         for item in nearby:
             object_lower = item["object"].lower().strip()
             if object_lower == target_lower or object_lower in target_lower or target_lower in object_lower:
                 print(f"Target matched in nearby: '{target}'")
                 distance = max(item["distance"], 200)
-                return self.angle_to_offset(item["angle"], distance)
+                return angle_to_offset(item["angle"], distance)
 
-        # fallback a memoria espacial
+        # Fallback to spatial memory
         for obj_name, data in self.memory.spatial.items():
             if obj_name.lower().strip() == target_lower or target_lower in obj_name.lower().strip():
                 print(f"Target matched in spatial memory: '{target}' at ({data['x']}, {data['y']})")
@@ -95,60 +87,68 @@ class Digimon:
         text = response["message"]["content"].strip().replace("```json", "").replace("```", "").strip()
         return json.loads(text)
 
+    def _update_state(self, data):
+        self.x = data.get("x", 0)
+        self.y = data.get("y", 0)
+        print(f"Digimon position: {self.x}, {self.y}")
+
+    def _handle_environment(self, nearby):
+        touching = self.get_touching(nearby)
+        self.handle_touching(touching)
+        nearby_str = self.parse_nearby(nearby)
+        self.memory.update_spatial(self.x, self.y, nearby)
+        return touching, nearby_str
+
+    def _run_thought_cycle(self, nearby_str, touching):
+        result = self.think(nearby_str, touching, self.memory.get_spatial_context(), self.memory.get_reflections_context())
+
+        thought = result.get("thought", "")
+        target = result.get("target", "explore")
+        wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
+
+        self.memory.add(thought)
+        self.memory.cycle_count += 1
+        if self.memory.cycle_count % 5 == 0:
+            self.reflect()
+
+        print(f"Digimon thinks: {thought}")
+        print(f"Target: {target} | Wait: {wait_time}s")
+        if touching:
+            print(f"Touching: {touching}")
+
+        return target, thought, wait_time
+
+    def _determine_action(self, target, nearby):
+        if self.memory.force_explore:
+            self.memory.force_explore = False
+            offset_x = random.randint(-2000, 2000)
+            offset_y = random.randint(-2000, 2000)
+        else:
+            offset = self.get_target_offset(target, nearby)
+            if offset:
+                offset_x, offset_y = offset
+            else:
+                offset_x = random.randint(-2000, 2000)
+                offset_y = random.randint(-2000, 2000)
+
+        print(f"Sending offset: {offset_x}, {offset_y}")
+        return offset_x, offset_y
+
     def process(self, data):
         if self.processing:
             print("Still thinking, ignoring request.")
             return {"offset_x": 0, "offset_y": 0, "thought": "", "wait_time": WAIT_TIME_DEFAULT}
 
         self.processing = True
-        self.update_needs()
-
-        nearby = data.get("nearby", [])
-
-        digimon_x = data.get("x", 0)
-        digimon_y = data.get("y", 0)
-        print(f"Digimon position: {digimon_x}, {digimon_y}")
-        self.x = digimon_x
-        self.y = digimon_y
-
-        touching = self.get_touching(nearby)
-        self.handle_touching(touching)
-        nearby_str = self.parse_nearby(nearby)
-        self.memory.update_spatial(digimon_x, digimon_y, nearby)
-
         try:
-            result = self.think(nearby_str, touching, self.memory.get_spatial_context(), self.memory.get_reflections_context())
+            self.update_needs()
+            self._update_state(data)
 
-            thought = result.get("thought", "")
-            target = result.get("target", "explore")
-            wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
+            nearby = data.get("nearby", [])
+            touching, nearby_str = self._handle_environment(nearby)
 
-            self.memory.add(thought)
-
-            self.memory.cycle_count += 1
-            if self.memory.cycle_count % 5 == 0:
-                self.reflect()
-
-            print(f"Digimon thinks: {thought}")
-            print(f"Target: {target} | Wait: {wait_time}s")
-            if touching:
-                print(f"Touching: {touching}")
-
-            if self.memory.force_explore:
-                self.memory.force_explore = False
-                import random
-                offset_x = random.randint(-2000, 2000)
-                offset_y = random.randint(-2000, 2000)
-            else:
-                offset = self.get_target_offset(target, nearby)
-                if offset:
-                    offset_x, offset_y = offset
-                else:
-                    import random
-                    offset_x = random.randint(-2000, 2000)
-                    offset_y = random.randint(-2000, 2000)
-
-            print(f"Sending offset: {offset_x}, {offset_y}")
+            target, thought, wait_time = self._run_thought_cycle(nearby_str, touching)
+            offset_x, offset_y = self._determine_action(target, nearby)
 
             return {
                 "offset_x": offset_x,

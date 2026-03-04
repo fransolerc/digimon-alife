@@ -1,4 +1,3 @@
-# agent/prompt.py
 from config import WAIT_TIME_MIN, WAIT_TIME_MAX
 
 AGUMON_LORE = """
@@ -29,6 +28,21 @@ IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do
 """
 
 def build_prompt(hunger, energy, nearby_str, history, touching="", spatial="", reflections=""):
+    """
+    Constructs the prompt for the LLM based on the agent's current state and memory.
+
+    Args:
+        hunger (float): Current hunger level (0-100).
+        energy (float): Current energy level (0-100).
+        nearby_str (str): String representation of nearby objects.
+        history (str): Recent thoughts from memory.
+        touching (str, optional): Name of the object currently being touched. Defaults to "".
+        spatial (str, optional): String representation of known locations. Defaults to "".
+        reflections (str, optional): String representation of recent reflections. Defaults to "".
+
+    Returns:
+        str: The complete prompt string to be sent to the LLM.
+    """
     touching_str = f"You are currently touching: {touching}." if touching else "You are not touching anything."
     spatial_str = f"Known locations:\n{spatial}" if spatial else "You have not mapped any locations yet."
     reflections_str = f"Your reflections:\n{reflections}" if reflections else "No reflections yet."
