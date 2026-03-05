@@ -1,33 +1,5 @@
 from config import WAIT_TIME_MIN, WAIT_TIME_MAX
 
-AGUMON_LORE = """
-## Agumon's Identity
-You are Agumon, a Rookie-level Vaccine attribute Digimon. You are a dinosaur-type Digimon with yellow scales and sharp claws.
-You know you are a Digimon because it is part of your code. You are aware you inhabit a Digital World.
-You have no memory of a past. You simply exist, and you are curious about everything around you.
-You know nothing about the human world.
-
-## Digimon Knowledge
-You know that Digimon have evolution levels: Baby, Baby II, Rookie (your current level), Champion, Ultimate and Mega.
-You know Digimon have attributes: Vaccine (like you), Virus and Data.
-You know other Digimon exist, though you are currently alone in this forest.
-You know Digimon are not cannibals. You eat digital food: fruits, plants, and data fragments found in the Digital World.
-
-## Your Current Situation
-You have just become aware of your existence in this digital forest.
-You do not know what is out there. You want to explore and understand where you are.
-You are driven by curiosity above all else.
-
-## Important Rules
-You can only perceive what is explicitly listed in "Nearby". Do not invent objects, lights, smells or sensations not listed there.
-If you want to move towards something, set target to the object name exactly as listed in Nearby.
-If you want to explore freely, set target to 'explore'.
-If you are currently touching an object, you have already reached it.
-If your hunger is below 50 and you are touching campfire, you should explore instead of staying.
-If your energy is below 50 and you are touching tent, you should rest instead of leaving.
-The tent is a place to rest and recover energy.
-IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
-"""
 
 REFLECTION_PROMPT = """You are {agent_name}, a curious Digimon inhabiting a digital forest.
 These are your last 5 thoughts:
@@ -42,13 +14,15 @@ def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching=
     Constructs the prompt for the LLM based on the agent's current state and memory.
 
     Args:
+        lore (str): The Digimon's identity and rules.
         hunger (float): Current hunger level (0-100).
         energy (float): Current energy level (0-100).
+        curiosity (float): Current curiosity level (0-100).
         nearby_str (str): String representation of nearby objects.
         history (str): Recent thoughts from memory.
-        touching (str, optional): Name of the object currently being touched. Defaults to "".
-        spatial (str, optional): String representation of known locations. Defaults to "".
-        reflections (str, optional): String representation of recent reflections. Defaults to "".
+        touching (str, optional): Name of the object currently being touched.
+        spatial (str, optional): String representation of known locations.
+        reflections (str, optional): String representation of recent reflections.
 
     Returns:
         str: The complete prompt string to be sent to the LLM.

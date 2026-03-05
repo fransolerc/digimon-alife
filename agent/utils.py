@@ -7,4 +7,4 @@ def angle_to_offset(angle, distance=MAX_VIEW_DISTANCE):
     y = math.sin(rad)
     offset_x = round(y * distance)
     offset_y = round(x * distance)
-    return (offset_x, offset_y)
+    return offset_x, offset_y

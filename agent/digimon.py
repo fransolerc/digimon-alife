@@ -41,7 +41,7 @@ class Digimon:
             if obj_name.lower().strip() == target_lower or target_lower in obj_name.lower().strip():
                 offset_x = round(data["x"] - self.x)
                 offset_y = round(data["y"] - self.y)
-                return (offset_x, offset_y)
+                return offset_x, offset_y
 
         print(f"Target not found: '{target}'")
         return None
@@ -51,7 +51,8 @@ class Digimon:
         self.energy = max(ENERGY_MIN, self.energy - ENERGY_DECREASE)
         self.curiosity = min(CURIOSITY_MAX, self.curiosity + CURIOSITY_INCREASE)
 
-    def distance_label(self, distance):
+    @staticmethod
+    def distance_label(distance):
         if distance < 200:
             return "very close"
         elif distance < 500:
@@ -69,7 +70,8 @@ class Digimon:
             ])
         return "nothing..."
 
-    def get_touching(self, nearby):
+    @staticmethod
+    def get_touching(nearby):
         if nearby and isinstance(nearby[0], dict):
             for item in nearby:
                 if item["distance"] < TOUCH_DISTANCE:

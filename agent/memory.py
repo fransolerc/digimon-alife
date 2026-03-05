@@ -4,7 +4,7 @@ import math
 import os
 from config import (
     MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
-    ENERGY_MAX, HUNGER_MIN, CURIOSITY_MAX, FIXATION_TARGET_COUNT
+    FIXATION_TARGET_COUNT
 )
 
 class Memory:
@@ -29,7 +29,7 @@ class Memory:
                 self.entries.pop(0)
             self.save()
 
-    def update_spatial(self, agumon_x, agumon_y, nearby):
+    def update_spatial(self, digimon_x, digimon_y, nearby):
         if not nearby or not isinstance(nearby[0], dict):
             return
 
@@ -38,8 +38,8 @@ class Memory:
             # Calculate object position relative to agent
             # Assuming angle is absolute or relative to a fixed coordinate system
             # x = sin(angle), y = cos(angle) based on angle_to_offset logic
-            obj_x = agumon_x + round(math.sin(angle_rad) * item["distance"])
-            obj_y = agumon_y + round(math.cos(angle_rad) * item["distance"])
+            obj_x = digimon_x + round(math.sin(angle_rad) * item["distance"])
+            obj_y = digimon_y + round(math.cos(angle_rad) * item["distance"])
 
             obj_name = item["object"].strip()
             self.spatial[obj_name] = {
