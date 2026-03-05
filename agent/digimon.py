@@ -13,8 +13,10 @@ from config import (
 )
 
 class Digimon:
-    def __init__(self):
-        self.memory = Memory()
+    def __init__(self, agent_id, lore):
+        self.agent_id = agent_id
+        self.memory = Memory(agent_id)
+        self.lore = lore
         self.hunger = self.memory.hunger
         self.energy = self.memory.energy
         self.curiosity = self.memory.curiosity
@@ -49,6 +51,7 @@ class Digimon:
     def update_needs(self):
         self.hunger = min(HUNGER_MAX, self.hunger + HUNGER_INCREASE)
         self.energy = max(ENERGY_MIN, self.energy - ENERGY_DECREASE)
+        self.curiosity = min(CURIOSITY_MAX, self.curiosity + CURIOSITY_INCREASE)
 
     def distance_label(self, distance):
         if distance < 200:
@@ -85,6 +88,7 @@ class Digimon:
 
     def think(self, nearby_str, touching="", spatial="", reflections=""):
         prompt = build_prompt(
+            self.lore,
             self.hunger,
             self.energy,
             self.curiosity,
@@ -191,7 +195,7 @@ class Digimon:
             return
 
         thoughts = "\n".join(self.memory.entries[-5:])
-        prompt = REFLECTION_PROMPT.format(thoughts=thoughts)
+        prompt = REFLECTION_PROMPT.format(agent_name=self.agent_id, thoughts=thoughts)
 
         try:
             response = ollama.chat(

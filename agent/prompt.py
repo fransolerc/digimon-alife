@@ -29,7 +29,7 @@ The tent is a place to rest and recover energy.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it to Spanish.
 """
 
-REFLECTION_PROMPT = """You are Agumon, a curious Digimon inhabiting a digital forest.
+REFLECTION_PROMPT = """You are {agent_name}, a curious Digimon inhabiting a digital forest.
 These are your last 5 thoughts:
 {thoughts}
 
@@ -37,7 +37,7 @@ Based on these thoughts, write a brief reflection (2-3 sentences) summarizing wh
 Reply ONLY with the reflection text, no JSON, no extra formatting."""
 
 
-def build_prompt(hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections=""):
+def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections=""):
     """
     Constructs the prompt for the LLM based on the agent's current state and memory.
 
@@ -57,7 +57,7 @@ def build_prompt(hunger, energy, curiosity, nearby_str, history, touching="", sp
     spatial_str = f"Known locations:\n{spatial}" if spatial else "You have not mapped any locations yet."
     reflections_str = f"Your reflections:\n{reflections}" if reflections else "No reflections yet."
 
-    return f"""{AGUMON_LORE}
+    return f"""{lore}
 Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100, curiosity {curiosity:.0f}/100.
 Nearby: {nearby_str}.
 {touching_str}

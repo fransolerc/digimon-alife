@@ -21,12 +21,9 @@ CURIOSITY_DECREASE = 2
 
 FIXATION_TARGET_COUNT = 5
 
-MEMORY_MAX_SIZE = 10
-MEMORY_CONTEXT_SIZE = 3
-MEMORY_FILE = "data/memory.json"
+MEMORY_MAX_SIZE = 100
+MEMORY_CONTEXT_SIZE = 10
 
 WAIT_TIME_MIN = 8
 WAIT_TIME_MAX = 20
 WAIT_TIME_DEFAULT = 10
-
-FIXATION_KEYWORDS = ["fixated", "same", "again", "repeatedly", "keep", "stuck", "only", "always"]

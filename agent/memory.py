@@ -3,12 +3,14 @@ import json
 import math
 import os
 from config import (
-    MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE, MEMORY_FILE,
+    MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
     ENERGY_MAX, HUNGER_MIN, CURIOSITY_MAX, FIXATION_TARGET_COUNT
 )
 
 class Memory:
-    def __init__(self):
+    def __init__(self, agent_id):
+        self.agent_id = agent_id
+        self.file = f"data/{agent_id}.json"
         self.entries = []
         self.spatial = {}
         self.reflections = []
@@ -62,25 +64,25 @@ class Memory:
 
     def save(self):
         try:
-            os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
-            with open(MEMORY_FILE, "w") as f:
+            os.makedirs(os.path.dirname(self.file), exist_ok=True)
+            with open(self.file, "w") as f:
                 json.dump({
-                                   "entries": self.entries,
-                                   "spatial": self.spatial,
-                                   "reflections": self.reflections,
-                                   "cycle_count": self.cycle_count,
-                                   "recent_targets": self.recent_targets,
-                                   "hunger": self.hunger,
-                                   "energy": self.energy,
-                                   "curiosity": self.curiosity
-                               }, f, indent=2)
+                    "entries": self.entries,
+                    "spatial": self.spatial,
+                    "reflections": self.reflections,
+                    "cycle_count": self.cycle_count,
+                    "recent_targets": self.recent_targets,
+                    "hunger": self.hunger,
+                    "energy": self.energy,
+                    "curiosity": self.curiosity
+                }, f, indent=2)
         except Exception as e:
             print(f"Memory save error: {e}")
 
     def load(self):
         try:
-            if os.path.exists(MEMORY_FILE):
-                with open(MEMORY_FILE, "r") as f:
+            if os.path.exists(self.file):
+                with open(self.file, "r") as f:
                     data = json.load(f)
                     self.entries = data.get("entries", [])
                     self.spatial = data.get("spatial", {})

@@ -1,26 +1,32 @@
-# main.py
 from flask import Flask, request, jsonify
 from agent.digimon import Digimon
+from agent.prompt import AGUMON_LORE
 from config import PORT
 
 app = Flask(__name__)
-agumon = Digimon()
+agents = {}
 
 @app.route('/state', methods=['POST'])
 def receive_state():
     data = request.get_json()
-    response = agumon.process(data)
+    agent_id = data.get("id", "unknown")
+    if agent_id not in agents:
+        agents[agent_id] = Digimon(agent_id, AGUMON_LORE)
+    response = agents[agent_id].process(data)
     return jsonify(response)
 
 @app.route('/status', methods=['GET'])
 def get_status():
     return jsonify({
-        "hunger": round(agumon.hunger, 1),
-        "energy": round(agumon.energy, 1),
-        "curiosity": round(agumon.curiosity, 1),
-        "cycle": agumon.memory.cycle_count,
-        "recent_targets": agumon.memory.recent_targets,
-        "processing": agumon.processing
+        agent_id: {
+            "hunger": round(agent.hunger, 1),
+            "energy": round(agent.energy, 1),
+            "curiosity": round(agent.curiosity, 1),
+            "cycle": agent.memory.cycle_count,
+            "recent_targets": agent.memory.recent_targets,
+            "processing": agent.processing
+        }
+        for agent_id, agent in agents.items()
     })
 
 if __name__ == '__main__':
