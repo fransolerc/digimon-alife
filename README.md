@@ -35,7 +35,8 @@ UE5 (body) ←→ Python (brain)
 - [x] Fixation detection (forces exploration when agent gets stuck)
 - [x] AI Perception (vision cone)
 - [x] Animations (idle, walk)
-- [ ] Multiple Digimon agents
+- [x] Multiple agent architecture (each Digimon has its own identity and memory)
+- [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
 ## Technologies
@@ -49,17 +50,17 @@ UE5 (body) ←→ Python (brain)
 
 ```
 /
-├── main.py              # Flask server entry point
+├── main.py              # Flask server entry point, agent registry
 ├── config.py            # Configuration and parameters
 ├── agent/
 │   ├── digimon.py       # Agent logic and state machine
 │   ├── memory.py        # Short-term, spatial and reflection memory system
 │   ├── prompt.py        # LLM prompt construction and lore
 │   └── utils.py         # Mathematical utility functions
-├── data/                # Persistent memory storage (local only)
+├── data/                # Persistent memory storage (one file per agent, local only)
 ├── README.md
 └── UE5/                 # Unreal Engine project
-    └── BP_Agumon        # Agent Character Blueprint
+    └── BP_Digimon       # Agent Character Blueprint
 ```
 
 ## How to Run
@@ -90,6 +91,8 @@ The agent has three internal states that evolve over time:
 Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
 
 Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop.
+
+Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore.
 
 ## Motivation
 
