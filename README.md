@@ -36,6 +36,7 @@ UE5 (body) ←→ Python (brain)
 - [x] AI Perception (vision cone)
 - [x] Animations (idle, walk)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
+- [x] Automatic lore generation from Digimon database
 - [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
@@ -56,8 +57,12 @@ UE5 (body) ←→ Python (brain)
 │   ├── digimon.py       # Agent logic and state machine
 │   ├── memory.py        # Short-term, spatial and reflection memory system
 │   ├── prompt.py        # LLM prompt construction and lore
+│   ├── lore.py          # Automatic lore generation from Digimon database
 │   └── utils.py         # Mathematical utility functions
-├── data/                # Persistent memory storage (one file per agent, local only)
+├── db/
+│   └── digimon.json     # Digimon database (name, level, type, specialities, digivolutions)
+├── data/
+│   └── *.json           # Persistent memory per agent (local only, not tracked)
 ├── README.md
 └── UE5/                 # Unreal Engine project
     └── BP_Digimon       # Agent Character Blueprint
@@ -92,7 +97,7 @@ Each decision cycle the agent receives nearby objects with their angle and dista
 
 Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop.
 
-Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore.
+Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
 
 ## Motivation
 

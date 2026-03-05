@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from agent.digimon import Digimon
-from agent.prompt import AGUMON_LORE
 from config import PORT
+from agent.lore import generate_lore
 
 app = Flask(__name__)
 agents = {}
@@ -11,7 +11,9 @@ def receive_state():
     data = request.get_json()
     agent_id = data.get("id", "unknown")
     if agent_id not in agents:
-        agents[agent_id] = Digimon(agent_id, AGUMON_LORE)
+        name = agent_id.split("_")[0].capitalize()
+        lore = generate_lore(name)
+        agents[agent_id] = Digimon(agent_id, lore)
     response = agents[agent_id].process(data)
     return jsonify(response)
 
