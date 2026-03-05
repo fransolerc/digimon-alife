@@ -1,7 +1,7 @@
 import json
 import os
 
-DIGIMON_DB_PATH = "data/digimon.json"
+DIGIMON_DB_PATH = "db/digimon.json"
 
 _db = None
 
