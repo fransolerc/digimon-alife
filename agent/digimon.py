@@ -33,14 +33,12 @@ class Digimon:
         for item in nearby:
             object_lower = item["object"].lower().strip()
             if object_lower == target_lower or object_lower in target_lower or target_lower in object_lower:
-                print(f"Target matched in nearby: '{target}'")
                 distance = max(item["distance"], 200)
                 return angle_to_offset(item["angle"], distance)
 
         # Fallback to spatial memory
         for obj_name, data in self.memory.spatial.items():
             if obj_name.lower().strip() == target_lower or target_lower in obj_name.lower().strip():
-                print(f"Target matched in spatial memory: '{target}' at ({data['x']}, {data['y']})")
                 offset_x = round(data["x"] - self.x)
                 offset_y = round(data["y"] - self.y)
                 return (offset_x, offset_y)
@@ -108,7 +106,6 @@ class Digimon:
     def _update_state(self, data):
         self.x = data.get("x", 0)
         self.y = data.get("y", 0)
-        print(f"Digimon position: {self.x}, {self.y}")
 
     def _handle_environment(self, nearby):
         touching = self.get_touching(nearby)
@@ -132,11 +129,6 @@ class Digimon:
         if self.memory.cycle_count % 5 == 0:
             self.reflect()
 
-        print(f"Digimon thinks: {thought}")
-        print(f"Target: {target} | Wait: {wait_time}s")
-        if touching:
-            print(f"Touching: {touching}")
-
         return target, thought, wait_time
 
     def _determine_action(self, target, nearby):
@@ -152,12 +144,10 @@ class Digimon:
                 offset_x = random.randint(-2000, 2000)
                 offset_y = random.randint(-2000, 2000)
 
-        print(f"Sending offset: {offset_x}, {offset_y}")
         return offset_x, offset_y
 
     def process(self, data):
         if self.processing:
-            print("Still thinking, ignoring request.")
             return {"offset_x": 0, "offset_y": 0, "thought": "", "wait_time": WAIT_TIME_DEFAULT}
 
         self.processing = True
@@ -204,7 +194,6 @@ class Digimon:
             )
             reflection = response["message"]["content"].strip()
             self.memory.add_reflection(reflection)
-            print(f"Reflection: {reflection}")
             self._check_fixation()
         except Exception as e:
             print(f"Reflection error: {e}")
@@ -213,5 +202,4 @@ class Digimon:
     def _check_fixation(self):
         if len(self.memory.recent_targets) >= FIXATION_TARGET_COUNT:
             if len(set(self.memory.recent_targets)) == 1:
-                print("Fixation detected, forcing exploration.")
                 self.memory.force_explore = True

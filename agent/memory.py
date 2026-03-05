@@ -47,7 +47,6 @@ class Memory:
                 "y": obj_y,
                 "last_seen": time.time()
             }
-            print(f"Spatial memory: {obj_name} at ({obj_x}, {obj_y})")
         self.save()
 
     def get_spatial_context(self):
@@ -92,7 +91,6 @@ class Memory:
                     self.hunger = data.get("hunger", 50.0)
                     self.energy = data.get("energy", 100.0)
                     self.curiosity = data.get("curiosity", 50.0)
-                print(f"Memory loaded: {len(self.entries)} thoughts, {len(self.spatial)} locations")
             else:
                 print("No previous memory found, starting fresh.")
         except Exception as e:
