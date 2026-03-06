@@ -38,6 +38,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
 - [x] Automatic lore generation from Digimon database
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
+- [x] Explored zones (intelligent exploration of unvisited areas)
 - [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
@@ -55,7 +56,11 @@ UE5 (body) ←→ Python (brain)
 ├── main.py                      # Flask server entry point, agent registry
 ├── config.py                    # Configuration and parameters
 ├── agent/
-│   ├── digimon.py               # Agent logic and state machine
+│   ├── digimon.py               # Agent orchestrator
+│   ├── cognition.py             # LLM reasoning, reflection, fixation detection
+│   ├── perception.py            # Nearby object parsing and touch detection
+│   ├── needs.py                 # Internal state updates and hard behavioral rules
+│   ├── movement.py              # Target resolution and exploration offset
 │   ├── lore.py                  # Automatic lore generation from Digimon database
 │   ├── prompt.py                # LLM prompt construction
 │   ├── utils.py                 # Mathematical utility functions
@@ -99,7 +104,7 @@ The agent has three internal states that evolve over time:
 
 Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
 
-Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop.
+Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop. When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
 
 Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
 
