@@ -1,7 +1,7 @@
 import ollama
 import json
 import random
-from agent.memory import Memory
+from agent.memory.memory import Memory
 from agent.prompt import build_prompt, REFLECTION_PROMPT
 from agent.utils import angle_to_offset
 from config import (
@@ -80,11 +80,27 @@ class Digimon:
 
     def handle_touching(self, touching):
         if touching == "campfire":
+            old_hunger = self.hunger
             self.hunger = max(HUNGER_MIN, self.hunger - HUNGER_EAT)
-            print("Digimon eats from the campfire!")
+            self.memory.add_event_node(
+                subject=self.agent_id,
+                predicate="touched",
+                obj="campfire",
+                description=f"{self.agent_id} touched campfire, hunger decreased from {old_hunger:.0f} to {self.hunger:.0f}",
+                poignancy=6,
+                keywords=["campfire", "hunger", "food"]
+            )
         elif touching == "tent":
+            old_energy = self.energy
             self.energy = min(ENERGY_MAX, self.energy + ENERGY_RESTORE)
-            print("Digimon rests in the tent!")
+            self.memory.add_event_node(
+                subject=self.agent_id,
+                predicate="touched",
+                obj="tent",
+                description=f"{self.agent_id} touched tent, energy increased from {old_energy:.0f} to {self.energy:.0f}",
+                poignancy=6,
+                keywords=["tent", "energy", "rest"]
+            )
 
     def think(self, nearby_str, touching="", spatial="", reflections=""):
         prompt = build_prompt(
@@ -96,7 +112,8 @@ class Digimon:
             self.memory.get_context(),
             touching=touching,
             spatial=spatial,
-            reflections=reflections
+            reflections=reflections,
+            semantic=self.memory.get_semantic_context()
         )
         response = ollama.chat(
             model=MODEL,
@@ -196,10 +213,30 @@ class Digimon:
             )
             reflection = response["message"]["content"].strip()
             self.memory.add_reflection(reflection)
+            self.memory.add_thought_node(
+                subject=self.agent_id,
+                predicate="reflects",
+                obj="experience",
+                description=reflection,
+                poignancy=7,
+                keywords=self._extract_keywords(reflection)
+            )
             self._check_fixation()
         except Exception as e:
             print(f"Reflection error: {e}")
 
+    @staticmethod
+    def _extract_keywords(text):
+        words = text.lower().split()
+        stopwords = {"the", "a", "an", "is", "it", "i", "to", "and", "or", "of", "in", "my", "me", "this"}
+        keywords = []
+        seen = set()
+        for w in words:
+            clean = w.strip(".,!?'\"")
+            if clean not in stopwords and len(clean) > 3 and clean not in seen:
+                seen.add(clean)
+                keywords.append(clean)
+        return keywords[:8]
 
     def _check_fixation(self):
         if len(self.memory.recent_targets) >= FIXATION_TARGET_COUNT:

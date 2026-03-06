@@ -2,6 +2,7 @@ import time
 import json
 import math
 import os
+from agent.memory.associative_memory import AssociativeMemory
 from config import (
     MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
     FIXATION_TARGET_COUNT
@@ -20,6 +21,7 @@ class Memory:
         self.energy = 100.0
         self.curiosity = 50.0
         self.force_explore = False
+        self.associative = AssociativeMemory()
         self.load()
 
     def add(self, thought):
@@ -73,7 +75,8 @@ class Memory:
                     "recent_targets": self.recent_targets,
                     "hunger": self.hunger,
                     "energy": self.energy,
-                    "curiosity": self.curiosity
+                    "curiosity": self.curiosity,
+                    "associative": self.associative.to_dict()
                 }, f, indent=2)
         except Exception as e:
             print(f"Memory save error: {e}")
@@ -91,6 +94,7 @@ class Memory:
                     self.hunger = data.get("hunger", 50.0)
                     self.energy = data.get("energy", 100.0)
                     self.curiosity = data.get("curiosity", 50.0)
+                    self.associative = AssociativeMemory.from_dict(data.get("associative", {"node_count": 0, "nodes": []}))
             else:
                 print("No previous memory found, starting fresh.")
         except Exception as e:
@@ -116,7 +120,18 @@ class Memory:
         return "\n".join(self.reflections)
 
     def add_target(self, target):
-        self.recent_targets.append(target)
+        self.recent_targets.append(target.strip())
         if len(self.recent_targets) > FIXATION_TARGET_COUNT:
             self.recent_targets.pop(0)
+        self.save()
+
+    def get_semantic_context(self):
+        return self.associative.get_semantic_context()
+
+    def add_event_node(self, subject, predicate, obj, description, poignancy, keywords):
+        self.associative.add_event(subject, predicate, obj, description, poignancy, keywords)
+        self.save()
+
+    def add_thought_node(self, subject, predicate, obj, description, poignancy, keywords, depth=1):
+        self.associative.add_thought(subject, predicate, obj, description, poignancy, keywords, depth)
         self.save()
