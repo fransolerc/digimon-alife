@@ -37,6 +37,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Animations (idle, walk)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
 - [x] Automatic lore generation from Digimon database
+- [x] Associative memory (episodic events and semantic thoughts in SPO format)
 - [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
@@ -51,21 +52,24 @@ UE5 (body) ←→ Python (brain)
 
 ```
 /
-├── main.py              # Flask server entry point, agent registry
-├── config.py            # Configuration and parameters
+├── main.py                      # Flask server entry point, agent registry
+├── config.py                    # Configuration and parameters
 ├── agent/
-│   ├── digimon.py       # Agent logic and state machine
-│   ├── memory.py        # Short-term, spatial and reflection memory system
-│   ├── prompt.py        # LLM prompt construction and lore
-│   ├── lore.py          # Automatic lore generation from Digimon database
-│   └── utils.py         # Mathematical utility functions
+│   ├── digimon.py               # Agent logic and state machine
+│   ├── lore.py                  # Automatic lore generation from Digimon database
+│   ├── prompt.py                # LLM prompt construction
+│   ├── utils.py                 # Mathematical utility functions
+│   └── memory/
+│       ├── __init__.py
+│       ├── memory.py            # Main memory manager (episodic, spatial, associative)
+│       ├── associative_memory.py # Associative memory with keyword-based retrieval
+│       └── concept_node.py      # ConceptNode: SPO-structured memory unit
 ├── db/
-│   └── digimon.json     # Digimon database (name, level, type, specialities, digivolutions)
-├── data/
-│   └── *.json           # Persistent memory per agent (local only, not tracked)
+│   └── digimon.json             # Digimon database (name, level, type, digivolutions)
+├── data/                        # Persistent memory per agent (local only, not tracked)
 ├── README.md
-└── UE5/                 # Unreal Engine project
-    └── BP_Digimon       # Agent Character Blueprint
+└── UE5/                         # Unreal Engine project
+    └── BP_Digimon               # Agent Character Blueprint (base class)
 ```
 
 ## How to Run
@@ -98,6 +102,14 @@ Each decision cycle the agent receives nearby objects with their angle and dista
 Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop.
 
 Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
+
+## Memory Architecture
+
+The agent maintains three distinct memory systems:
+
+- **Episodic memory**: recent thoughts in natural language, provides short-term context
+- **Spatial memory**: known object locations with coordinates and timestamps
+- **Associative memory**: structured nodes in subject-predicate-object format, split into events (concrete interactions) and thoughts (abstract reflections). Each node has a poignancy score and keywords for relevance-based retrieval.
 
 ## Motivation
 
