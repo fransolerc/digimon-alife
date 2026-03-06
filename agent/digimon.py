@@ -125,6 +125,7 @@ class Digimon:
     def _update_state(self, data):
         self.x = data.get("x", 0)
         self.y = data.get("y", 0)
+        self.memory.add_explored_zone(self.x, self.y)
 
     def _handle_environment(self, nearby):
         touching = self.get_touching(nearby)
@@ -138,6 +139,12 @@ class Digimon:
 
         thought = result.get("thought", "")
         target = result.get("target", "explore")
+
+        # Hard rules: override LLM target when needs are satisfied
+        if target == "campfire" and self.hunger < 20:
+            target = "explore"
+        if target == "tent" and self.energy > 80:
+            target = "explore"
         wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
 
         self.memory.add(thought)
@@ -153,15 +160,13 @@ class Digimon:
     def _determine_action(self, target, nearby):
         if self.memory.force_explore:
             self.memory.force_explore = False
-            offset_x = random.randint(-2000, 2000)
-            offset_y = random.randint(-2000, 2000)
+            offset_x, offset_y = self._get_exploration_offset()
         else:
             offset = self.get_target_offset(target, nearby)
             if offset:
                 offset_x, offset_y = offset
             else:
-                offset_x = random.randint(-2000, 2000)
-                offset_y = random.randint(-2000, 2000)
+                offset_x, offset_y = self._get_exploration_offset()
 
         return offset_x, offset_y
 
@@ -242,3 +247,26 @@ class Digimon:
         if len(self.memory.recent_targets) >= FIXATION_TARGET_COUNT:
             if len(set(self.memory.recent_targets)) == 1:
                 self.memory.force_explore = True
+
+    def _get_exploration_offset(self):
+        from config import EXPLORE_ZONE_RADIUS, MAP_HALF_SIZE
+
+        candidates = []
+        for _ in range(20):
+            cx = random.randint(-MAP_HALF_SIZE, MAP_HALF_SIZE)
+            cy = random.randint(-MAP_HALF_SIZE, MAP_HALF_SIZE)
+            covered = False
+            for zone in self.memory.explored_zones:
+                dx = zone["x"] - cx
+                dy = zone["y"] - cy
+                if (dx * dx + dy * dy) < EXPLORE_ZONE_RADIUS ** 2:
+                    covered = True
+                    break
+            if not covered:
+                candidates.append((cx, cy))
+
+        if candidates:
+            tx, ty = random.choice(candidates)
+            return round(tx - self.x), round(ty - self.y)
+
+        return random.randint(-2000, 2000), random.randint(-2000, 2000)

@@ -23,6 +23,7 @@ class Memory:
         self.force_explore = False
         self.associative = AssociativeMemory()
         self.load()
+        self.explored_zones = []
 
     def add(self, thought):
         if thought:
@@ -76,7 +77,8 @@ class Memory:
                     "hunger": self.hunger,
                     "energy": self.energy,
                     "curiosity": self.curiosity,
-                    "associative": self.associative.to_dict()
+                    "associative": self.associative.to_dict(),
+                    "explored_zones": self.explored_zones
                 }, f, indent=2)
         except Exception as e:
             print(f"Memory save error: {e}")
@@ -95,6 +97,7 @@ class Memory:
                     self.energy = data.get("energy", 100.0)
                     self.curiosity = data.get("curiosity", 50.0)
                     self.associative = AssociativeMemory.from_dict(data.get("associative", {"node_count": 0, "nodes": []}))
+                    self.explored_zones = data.get("explored_zones", [])
             else:
                 print("No previous memory found, starting fresh.")
         except Exception as e:
@@ -135,3 +138,12 @@ class Memory:
     def add_thought_node(self, subject, predicate, obj, description, poignancy, keywords, depth=1):
         self.associative.add_thought(subject, predicate, obj, description, poignancy, keywords, depth)
         self.save()
+
+    def add_explored_zone(self, x, y):
+        from config import EXPLORE_ZONE_RADIUS
+        for zone in self.explored_zones:
+            dx = zone["x"] - x
+            dy = zone["y"] - y
+            if (dx * dx + dy * dy) < EXPLORE_ZONE_RADIUS ** 2:
+                return
+        self.explored_zones.append({"x": round(x), "y": round(y)})
