@@ -1,6 +1,7 @@
 from agent.memory.memory import Memory
 from agent.needs import update_needs, handle_touching
 from agent.movement import determine_action
+from agent.perception import get_touching_from_spatial
 from agent.cognition import run_thought_cycle
 from config import WAIT_TIME_DEFAULT
 
@@ -16,27 +17,27 @@ class Digimon:
         self.x = 0.0
         self.y = 0.0
         self.processing = False
+        self.current_target = "explore"
 
     def _update_state(self, data):
         self.x = data.get("x", 0)
         self.y = data.get("y", 0)
         self.memory.add_explored_zone(self.x, self.y)
 
-    def process(self, data):
+    def think_cycle(self, data):
         if self.processing:
-            return {"offset_x": 0, "offset_y": 0, "thought": "", "wait_time": WAIT_TIME_DEFAULT}
+            return {"thought": "", "target": self.current_target, "wait_time": 3}
 
         self.processing = True
         try:
             update_needs(self)
             self._update_state(data)
 
-            from agent.perception import get_touching_from_spatial
             touching = get_touching_from_spatial(self.x, self.y, self.memory.spatial)
             handle_touching(self, touching)
 
             target, thought, wait_time = run_thought_cycle(self, "", touching)
-            offset_x, offset_y = determine_action(self, target, [])
+            self.current_target = target
 
             self.memory.hunger = self.hunger
             self.memory.energy = self.energy
@@ -44,15 +45,21 @@ class Digimon:
             self.memory.save()
 
             return {
-                "offset_x": offset_x,
-                "offset_y": offset_y,
                 "thought": thought,
+                "target": target,
                 "wait_time": wait_time
             }
 
         except Exception as e:
             print(f"Error: {e}")
-            return {"offset_x": 2000, "offset_y": 0, "thought": "...", "wait_time": WAIT_TIME_DEFAULT}
+            return {"thought": "...", "target": "explore", "wait_time": WAIT_TIME_DEFAULT}
 
         finally:
             self.processing = False
+
+    def move_cycle(self, data):
+        self._update_state(data)
+        if self.current_target == "idle":
+            return {"offset_x": 0, "offset_y": 0}
+        offset_x, offset_y = determine_action(self, self.current_target, [])
+        return {"offset_x": offset_x, "offset_y": offset_y}
