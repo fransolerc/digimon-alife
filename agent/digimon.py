@@ -1,5 +1,4 @@
 from agent.memory.memory import Memory
-from agent.perception import parse_nearby, get_touching
 from agent.needs import update_needs, handle_touching
 from agent.movement import determine_action
 from agent.cognition import run_thought_cycle
@@ -32,14 +31,12 @@ class Digimon:
             update_needs(self)
             self._update_state(data)
 
-            nearby = data.get("nearby", [])
-            touching = get_touching(nearby)
+            from agent.perception import get_touching_from_spatial
+            touching = get_touching_from_spatial(self.x, self.y, self.memory.spatial)
             handle_touching(self, touching)
-            nearby_str = parse_nearby(nearby)
-            self.memory.update_spatial(self.x, self.y, nearby)
 
-            target, thought, wait_time = run_thought_cycle(self, nearby_str, touching)
-            offset_x, offset_y = determine_action(self, target, nearby)
+            target, thought, wait_time = run_thought_cycle(self, "", touching)
+            offset_x, offset_y = determine_action(self, target, [])
 
             self.memory.hunger = self.hunger
             self.memory.energy = self.energy

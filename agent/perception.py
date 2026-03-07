@@ -29,3 +29,14 @@ def get_touching(nearby):
             if item["distance"] < TOUCH_DISTANCE:
                 return item["object"].strip()
     return ""
+
+def get_touching_from_spatial(agent_x, agent_y, spatial):
+    from config import TOUCH_DISTANCE
+    import math
+    for obj_name, data in spatial.items():
+        dx = data["x"] - agent_x
+        dy = data["y"] - agent_y
+        distance = math.sqrt(dx * dx + dy * dy)
+        if distance < TOUCH_DISTANCE:
+            return obj_name
+    return ""
