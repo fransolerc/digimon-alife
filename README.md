@@ -39,6 +39,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Automatic lore generation from Digimon database
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
 - [x] Explored zones (intelligent exploration of unvisited areas)
+- [x] Separate perception endpoint for real-time spatial memory updates
 - [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
@@ -94,6 +95,12 @@ python main.py
 
 Agumon will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
 
+## HTTP Endpoints
+
+- **POST /state** — main thought cycle. Receives agent position, returns movement offset and thought.
+- **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory independently of the thought cycle.
+- **GET /status** — debug endpoint. Returns current internal states for all agents.
+
 ## Agent Brain
 
 The agent has three internal states that evolve over time:
@@ -102,7 +109,7 @@ The agent has three internal states that evolve over time:
 - **Energy**: decreases over time. Restored by resting in the tent.
 - **Curiosity**: increases over time. Decreases when exploring new areas.
 
-Each decision cycle the agent receives nearby objects with their angle and distance, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from the angle and distance to the target, not interpreted by the LLM. Known object locations are stored in spatial memory and provided as context for future decisions.
+Each decision cycle the agent receives its current position, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from known object coordinates in spatial memory, not interpreted by the LLM. Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects.
 
 Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop. When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
 
@@ -113,7 +120,7 @@ Each Digimon is identified by a unique ID sent in the POST payload. The server m
 The agent maintains three distinct memory systems:
 
 - **Episodic memory**: recent thoughts in natural language, provides short-term context
-- **Spatial memory**: known object locations with coordinates and timestamps
+- **Spatial memory**: known object locations with coordinates and timestamps, updated in real-time via AI Perception
 - **Associative memory**: structured nodes in subject-predicate-object format, split into events (concrete interactions) and thoughts (abstract reflections). Each node has a poignancy score and keywords for relevance-based retrieval.
 
 ## Motivation
