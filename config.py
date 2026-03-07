@@ -30,3 +30,11 @@ MEMORY_CONTEXT_SIZE = 10
 WAIT_TIME_MIN = 8
 WAIT_TIME_MAX = 20
 WAIT_TIME_DEFAULT = 10
+
+LANGUAGE = "es"
+
+LANGUAGE_INSTRUCTIONS = {
+    "en": "Always respond in English.",
+    "es": "IMPORTANTE: Responde SIEMPRE en español. Nunca uses inglés.",
+    "ja": "常に日本語で返答してください。",
+}

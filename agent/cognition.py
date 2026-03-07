@@ -1,8 +1,8 @@
 import ollama
 import json
-from agent.prompt import build_prompt, REFLECTION_PROMPT
-from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE
-
+from agent.prompt import build_prompt
+from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE
+from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES
 
 def think(digimon, nearby_str, touching="", spatial="", reflections=""):
     prompt = build_prompt(
@@ -19,7 +19,10 @@ def think(digimon, nearby_str, touching="", spatial="", reflections=""):
     )
     response = ollama.chat(
         model=MODEL,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[
+            {"role": "system", "content": SYSTEM_MESSAGES.get(LANGUAGE, SYSTEM_MESSAGES["en"])},
+            {"role": "user", "content": prompt}
+        ]
     )
     text = response["message"]["content"].strip().replace("```json", "").replace("```", "").strip()
     return json.loads(text)
@@ -43,12 +46,18 @@ def reflect(digimon):
         return
 
     thoughts = "\n".join(digimon.memory.entries[-5:])
-    prompt = REFLECTION_PROMPT.format(agent_name=digimon.agent_id, thoughts=thoughts)
+    prompt = REFLECTION_PROMPT.get(LANGUAGE, REFLECTION_PROMPT["en"]).format(
+        agent_name=digimon.agent_id,
+        thoughts=thoughts
+    )
 
     try:
         response = ollama.chat(
             model=MODEL,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": SYSTEM_MESSAGES.get(LANGUAGE, SYSTEM_MESSAGES["en"])},
+                {"role": "user", "content": prompt}
+            ]
         )
         reflection = response["message"]["content"].strip()
         digimon.memory.add_reflection(reflection)

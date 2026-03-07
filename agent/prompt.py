@@ -1,49 +1,27 @@
-from config import WAIT_TIME_MIN, WAIT_TIME_MAX
-
-
-REFLECTION_PROMPT = """You are {agent_name}, a curious Digimon inhabiting a digital forest.
-These are your last 5 thoughts:
-{thoughts}
-
-Based on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have learned or concluded.
-Reply ONLY with the reflection text, no JSON, no extra formatting."""
+from config import WAIT_TIME_MIN, WAIT_TIME_MAX, LANGUAGE
+from locales import PROMPT_STRINGS, LANGUAGE_INSTRUCTIONS
 
 
 def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections="", semantic=""):
-    """
-    Constructs the prompt for the LLM based on the agent's current state and memory.
+    s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS[LANGUAGE])
+    language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS[LANGUAGE])
 
-    Args:
-        lore (str): The Digimon's identity and rules.
-        hunger (float): Current hunger level (0-100).
-        energy (float): Current energy level (0-100).
-        curiosity (float): Current curiosity level (0-100).
-        nearby_str (str): String representation of nearby objects.
-        history (str): Recent thoughts from memory.
-        touching (str, optional): Name of the object currently being touched.
-        spatial (str, optional): String representation of known locations.
-        reflections (str, optional): String representation of recent reflections.
-        semantic (str, optional): Conceptual knowledge learned from experience.
-
-    Returns:
-        str: The complete prompt string to be sent to the LLM.
-    """
-    touching_str = f"You are currently touching: {touching}." if touching else "You are not touching anything."
-    spatial_str = f"Known locations:\n{spatial}" if spatial else "You have not mapped any locations yet."
-    reflections_str = f"Your reflections:\n{reflections}" if reflections else "No reflections yet."
-    semantic_str = f"What you have learned:\n{semantic}" if semantic else "You have not learned anything yet."
+    touching_str = s["touching"].format(touching=touching) if touching else s["not_touching"]
+    spatial_str = s["known_locations"].format(spatial=spatial) if spatial else s["no_locations"]
+    reflections_str = s["reflections"].format(reflections=reflections) if reflections else s["no_reflections"]
+    semantic_str = s["learned"].format(semantic=semantic) if semantic else s["not_learned"]
 
     return f"""{lore}
-Current state: hunger {hunger:.0f}/100, energy {energy:.0f}/100, curiosity {curiosity:.0f}/100.
-Nearby: {nearby_str}.
+{language_instruction}
+{s["state"].format(h=f"{hunger:.0f}", e=f"{energy:.0f}", c=f"{curiosity:.0f}")}
+{s["nearby"].format(nearby=nearby_str)}
 {touching_str}
 {spatial_str}
 {reflections_str}
 {semantic_str}
-Recent thoughts:
-{history}
+{s["recent_thoughts"].format(history=history)}
 
-What are you thinking and where do you want to go?
-IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby.
-Reply ONLY with valid JSON, no extra text, no markdown:
-{{"thought": "...", "target": "<object from Nearby or 'explore'>", "wait_time": <integer between {WAIT_TIME_MIN} and {WAIT_TIME_MAX}>}}"""
+{s["question"]}
+{s["important"]}
+{s["reply"]}
+{{"thought": "...", "target": "<{"objeto de Cerca" if LANGUAGE == "es" else "object from Nearby"} or 'explore'>", "wait_time": <{"entero" if LANGUAGE == "es" else "integer"} entre {WAIT_TIME_MIN} y {WAIT_TIME_MAX}>}}"""
