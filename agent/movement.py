@@ -16,9 +16,7 @@ def get_target_offset(digimon, target, nearby):
 
     for obj_name, data in digimon.memory.spatial.items():
         if obj_name.lower().strip() == target_lower or target_lower in obj_name.lower().strip():
-            offset_x = round(data["x"] - digimon.x)
-            offset_y = round(data["y"] - digimon.y)
-            return offset_x, offset_y
+            return round(data["x"]), round(data["y"])
 
     return None
 

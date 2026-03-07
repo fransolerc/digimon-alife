@@ -66,9 +66,20 @@ def reflect(digimon):
 
 
 def check_fixation(digimon):
-    if len(digimon.memory.recent_targets) >= FIXATION_TARGET_COUNT:
-        if len(set(digimon.memory.recent_targets)) == 1:
-            digimon.memory.force_explore = True
+    if len(digimon.memory.recent_targets) < FIXATION_TARGET_COUNT:
+        return False
+
+    last_targets = digimon.memory.recent_targets[-FIXATION_TARGET_COUNT:]
+    if len(set(last_targets)) == 1:
+        target = last_targets[0]
+        # No es fixation si la necesidad justifica el target
+        if target == "campfire" and digimon.hunger > 60:
+            return False
+        if target == "tent" and digimon.energy < 40:
+            return False
+        return True
+
+    return False
 
 
 def run_thought_cycle(digimon, nearby_str, touching):

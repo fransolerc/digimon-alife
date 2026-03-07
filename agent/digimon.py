@@ -60,6 +60,6 @@ class Digimon:
     def move_cycle(self, data):
         self._update_state(data)
         if self.current_target == "idle":
-            return {"offset_x": 0, "offset_y": 0}
-        offset_x, offset_y = determine_action(self, self.current_target, [])
-        return {"offset_x": offset_x, "offset_y": offset_y}
+            return {"target_x": 0, "target_y": 0}
+        x, y = determine_action(self, self.current_target, [])
+        return {"target_x": x, "target_y": y}
