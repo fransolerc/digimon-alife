@@ -97,7 +97,8 @@ Agumon will begin perceiving its environment, reasoning about what it finds and 
 
 ## HTTP Endpoints
 
-- **POST /state** — main thought cycle. Receives agent position, returns movement offset and thought.
+- **POST /think** — main thought cycle. Receives agent position, returns thought, target and wait_time.
+- **POST /move** — movement calculation. Returns offset_x and offset_y toward current target.
 - **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory independently of the thought cycle.
 - **GET /status** — debug endpoint. Returns current internal states for all agents.
 
@@ -109,9 +110,9 @@ The agent has three internal states that evolve over time:
 - **Energy**: decreases over time. Restored by resting in the tent.
 - **Curiosity**: increases over time. Decreases when exploring new areas.
 
-Each decision cycle the agent receives its current position, reasons about its situation using an LLM and decides a target object or free exploration. Movement is calculated mathematically from known object coordinates in spatial memory, not interpreted by the LLM. Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects.
+The thought cycle and movement cycle are independent. On each think cycle the agent reasons about its situation using an LLM and decides a target object, free exploration, or idle. Movement is calculated mathematically from known object coordinates in spatial memory, not interpreted by the LLM. When Agumon reaches its destination it waits wait_time seconds before thinking again. If movement fails, a new think cycle is triggered immediately.
 
-Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop. When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
+Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects. Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop. When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
 
 Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
 
