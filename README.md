@@ -26,13 +26,13 @@ UE5 (body) ←→ Python (brain)
 - [x] LLM-based reasoning and decision-making in natural language
 - [x] Short-term memory (recent thoughts influence future decisions)
 - [x] Spatial memory (known object locations persist across perception cycles)
-- [x] Target-based movement (agent moves toward specific objects using angle and distance)
+- [x] Target-based movement (agent moves toward specific objects using absolute coordinates)
 - [x] Touching detection (proximity-based interaction with environment)
 - [x] Agent-controlled action frequency (wait_time)
 - [x] Basic interaction with environment (campfire restores hunger, tent restores energy)
 - [x] Persistent memory (save/load across sessions)
 - [x] Reflection and abstraction from episodic memory
-- [x] Fixation detection (forces exploration when agent gets stuck)
+- [x] Fixation detection (forces exploration when agent gets stuck, need-aware)
 - [x] AI Perception (vision cone)
 - [x] Animations (idle, walk)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
@@ -40,6 +40,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
 - [x] Explored zones (intelligent exploration of unvisited areas)
 - [x] Separate perception endpoint for real-time spatial memory updates
+- [x] Multilanguage support (configurable via LANGUAGE in config.py)
 - [ ] Multiple Digimon agents (second agent in UE5)
 - [ ] Causal learning from experience
 
@@ -56,6 +57,7 @@ UE5 (body) ←→ Python (brain)
 /
 ├── main.py                      # Flask server entry point, agent registry
 ├── config.py                    # Configuration and parameters
+├── locales.py                   # Localized strings (EN/ES) for lore, prompts and reflections
 ├── agent/
 │   ├── digimon.py               # Agent orchestrator
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
@@ -95,10 +97,23 @@ python main.py
 
 Agumon will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
 
+## Configuration
+
+Key parameters in `config.py`:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `LANGUAGE` | `"es"` | Agent language (`"en"` or `"es"`) |
+| `TOUCH_DISTANCE` | `200` | Distance to consider an object as touched |
+| `FIXATION_TARGET_COUNT` | `10` | Cycles before fixation is detected |
+| `WAIT_TIME_MIN` / `MAX` | `8` / `20` | LLM wait time range in seconds |
+
+All localized strings (lore, prompts, reflections) are in `locales.py`. Adding a new language requires only adding entries to the dictionaries there.
+
 ## HTTP Endpoints
 
-- **POST /think** — main thought cycle. Receives agent position, returns thought, target and wait_time.
-- **POST /move** — movement calculation. Returns offset_x and offset_y toward current target.
+- **POST /think** — main thought cycle. Receives agent position (`id`, `x`, `y`), returns `thought`, `target` and `wait_time`.
+- **POST /move** — movement calculation. Returns absolute world coordinates (`target_x`, `target_y`) toward current target.
 - **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory independently of the thought cycle.
 - **GET /status** — debug endpoint. Returns current internal states for all agents.
 
@@ -110,9 +125,9 @@ The agent has three internal states that evolve over time:
 - **Energy**: decreases over time. Restored by resting in the tent.
 - **Curiosity**: increases over time. Decreases when exploring new areas.
 
-The thought cycle and movement cycle are independent. On each think cycle the agent reasons about its situation using an LLM and decides a target object, free exploration, or idle. Movement is calculated mathematically from known object coordinates in spatial memory, not interpreted by the LLM. When Agumon reaches its destination it waits wait_time seconds before thinking again. If movement fails, a new think cycle is triggered immediately.
+The think and move cycles are independent. On each think cycle the agent reasons about its situation using an LLM and decides a target object, free exploration, or idle. `/move` returns the absolute world coordinates of the current target — calculated mathematically from spatial memory, not interpreted by the LLM. UE5 uses AI MoveTo to navigate there; On Success waits `wait_time` seconds before the next think cycle, On Fail triggers an immediate new think cycle.
 
-Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects. Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. If fixation is detected (same target chosen repeatedly), exploration is forced to break the loop. When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
+Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects. Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, but respects genuine needs (hunger > 60 targeting campfire is not fixation). When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
 
 Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
 
@@ -121,7 +136,7 @@ Each Digimon is identified by a unique ID sent in the POST payload. The server m
 The agent maintains three distinct memory systems:
 
 - **Episodic memory**: recent thoughts in natural language, provides short-term context
-- **Spatial memory**: known object locations with coordinates and timestamps, updated in real-time via AI Perception
+- **Spatial memory**: known object locations with absolute world coordinates and timestamps, updated in real-time via AI Perception
 - **Associative memory**: structured nodes in subject-predicate-object format, split into events (concrete interactions) and thoughts (abstract reflections). Each node has a poignancy score and keywords for relevance-based retrieval.
 
 ## Motivation
