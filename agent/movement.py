@@ -4,7 +4,7 @@ from config import EXPLORE_ZONE_RADIUS, MAP_HALF_SIZE
 
 
 def get_target_offset(digimon, target, nearby):
-    if target == "explore" or not nearby or not isinstance(nearby[0], dict):
+    if target == "explore":
         return None
     target_lower = target.lower().strip()
 
@@ -21,7 +21,6 @@ def get_target_offset(digimon, target, nearby):
             return offset_x, offset_y
 
     return None
-
 
 def get_exploration_offset(digimon):
     candidates = []
