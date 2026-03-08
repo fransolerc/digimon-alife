@@ -14,7 +14,7 @@ UE5 (body) ←→ Python (brain)
 
 - **Unreal Engine 5** handles the 3D environment, navigation (NavMesh), animations and action execution
 - **Python + Flask** contains the agent's logic: internal states, spatial perception processing, LLM reasoning and memory
-- **Ollama + Gemma 3 4B** runs locally as the agent's reasoning engine
+- **Ollama + Llama 3.2 3B Instruct** runs locally as the agent's reasoning engine
 - Communication is bidirectional via **local HTTP**, frequency determined by the agent itself
 
 ## Current Status
@@ -41,15 +41,17 @@ UE5 (body) ←→ Python (brain)
 - [x] Explored zones (UE5 handles exploration, notifies Python of visited zones)
 - [x] Separate perception endpoint for real-time spatial memory updates
 - [x] Multilanguage support (configurable via LANGUAGE in config.py)
+- [x] Causal learning from experience (campfire→hunger_reduction, tent→energy_restoration)
+- [x] Explicit need state instructions in prompt (SATISFIED/HUNGRY/RESTED/TIRED)
+- [x] Object glossary in prompt to prevent LLM hallucinations on English tags
 - [ ] Multiple Digimon agents (second agent in UE5)
-- [ ] Causal learning from experience
 
 ## Technologies
 
 - Unreal Engine 5.7
 - Python 3.x
 - Flask
-- Ollama + Gemma 3 4B
+- Ollama + Llama 3.2 3B Instruct
 
 ## Project Structure
 
@@ -84,7 +86,7 @@ UE5 (body) ←→ Python (brain)
 
 **1. Install Ollama and pull the model:**
 ```bash
-ollama pull gemma3:4b
+ollama pull llama3.2:3b
 ```
 
 **2. Start the Python server:**
@@ -107,8 +109,11 @@ Key parameters in `config.py`:
 | `TOUCH_DISTANCE` | `200` | Distance to consider an object as touched |
 | `FIXATION_TARGET_COUNT` | `10` | Cycles before fixation is detected |
 | `WAIT_TIME_MIN` / `MAX` | `8` / `20` | LLM wait time range in seconds |
+| `HUNGER_CAMPFIRE_THRESHOLD` | `40` | Below this hunger → agent is satisfied |
+| `ENERGY_TENT_THRESHOLD` | `80` | Above this energy → agent is rested |
+| `MAX_ASSOCIATIVE_NODES` | `200` | Max nodes in associative memory (trimmed by poignancy) |
 
-All localized strings (lore, prompts, reflections) are in `locales.py`. Adding a new language requires only adding entries to the dictionaries there.
+All localized strings (lore, prompts, reflections, stopwords, state labels, object glossary) are in `locales.py`.
 
 ## HTTP Endpoints
 
@@ -132,9 +137,7 @@ On each think cycle the agent reasons about its situation using an LLM and decid
 - **explore** → UE5 generates a random reachable point via NavMesh → AI MoveTo → notifies `/explored` on success
 - **idle** → waits wait_time seconds → new think cycle
 
-On AI MoveTo success, Agumon waits `wait_time` seconds before thinking again. On fail, a new think cycle is triggered immediately.
-
-Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects, storing their absolute world coordinates. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
+Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
 
 Each Digimon is identified by a unique ID. The server maintains a separate agent instance and memory file per Digimon. Lore is generated automatically from the Digimon database.
 
@@ -142,8 +145,17 @@ Each Digimon is identified by a unique ID. The server maintains a separate agent
 
 - **Episodic memory**: recent thoughts in natural language
 - **Spatial memory**: known object locations with absolute world coordinates, updated in real-time via AI Perception
-- **Associative memory**: structured nodes in subject-predicate-object format (events and thoughts), with poignancy scores and keyword-based retrieval
+- **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
 - **Explored zones**: coordinates of visited exploration points, populated by UE5 via `/explored`
+
+## Causal Learning
+
+When Agumon interacts with an object, a causal node is stored in associative memory:
+
+- `campfire causes hunger_reduction` — learned after eating
+- `tent causes energy_restoration` — learned after resting
+
+These nodes have high poignancy (8) and appear in the LLM's semantic context on subsequent cycles, grounding its reasoning in learned experience rather than pure instruction-following.
 
 ## Motivation
 
