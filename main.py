@@ -6,6 +6,22 @@ from agent.lore import generate_lore
 app = Flask(__name__)
 agents = {}
 
+
+def _get_or_create_agent(agent_id):
+    if agent_id not in agents:
+        name = agent_id.split("_")[0].capitalize()
+        lore = generate_lore(name)
+        agents[agent_id] = Digimon(agent_id, lore)
+    return agents[agent_id]
+
+
+def _require_id(data):
+    agent_id = data.get("id")
+    if not agent_id:
+        return None, jsonify({"error": "missing agent id"}), 400
+    return agent_id, None, None
+
+
 @app.route('/status', methods=['GET'])
 def get_status():
     return jsonify({
@@ -20,48 +36,50 @@ def get_status():
         for agent_id, agent in agents.items()
     })
 
+
 @app.route('/perception', methods=['POST'])
 def update_perception():
     data = request.json
-    agent_id = data.get("id")
-    if agent_id not in agents:
-        name = agent_id.split("_")[0].capitalize()
-        lore = generate_lore(name)
-        agents[agent_id] = Digimon(agent_id, lore)
-    detected = data.get("detected", [])
-    agents[agent_id].memory.update_spatial(detected)
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
+    agent = _get_or_create_agent(agent_id)
+    agent.memory.update_spatial(data.get("detected", []))
     return jsonify({"status": "ok"})
+
 
 @app.route('/think', methods=['POST'])
 def think():
     data = request.json
-    agent_id = data.get("id")
-    if agent_id not in agents:
-        name = agent_id.split("_")[0].capitalize()
-        lore = generate_lore(name)
-        agents[agent_id] = Digimon(agent_id, lore)
-    response = agents[agent_id].think_cycle(data)
-    return jsonify(response)
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
+    agent = _get_or_create_agent(agent_id)
+    return jsonify(agent.think_cycle(data))
+
 
 @app.route('/move', methods=['POST'])
 def move():
     data = request.json
-    agent_id = data.get("id")
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
     if agent_id not in agents:
-        return jsonify({"offset_x": 0, "offset_y": 0})
-    response = agents[agent_id].move_cycle(data)
-    return jsonify(response)
+        return jsonify({"target_x": 0, "target_y": 0})
+    return jsonify(agents[agent_id].move_cycle(data))
+
 
 @app.route('/explored', methods=['POST'])
 def explored():
     data = request.json
-    agent_id = data.get("id")
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
     if agent_id not in agents:
         return jsonify({"status": "unknown agent"})
-    x = data.get("x", 0)
-    y = data.get("y", 0)
-    agents[agent_id].memory.add_explored_zone(x, y)
+    agents[agent_id].memory.add_explored_zone(data.get("x", 0), data.get("y", 0))
     return jsonify({"status": "ok"})
+
 
 if __name__ == '__main__':
     app.run(port=PORT)
