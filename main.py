@@ -28,14 +28,8 @@ def update_perception():
         name = agent_id.split("_")[0].capitalize()
         lore = generate_lore(name)
         agents[agent_id] = Digimon(agent_id, lore)
-
-    agent = agents[agent_id]
-    nearby = data.get("nearby", [])
-    x = data.get("x", agent.x)
-    y = data.get("y", agent.y)
-    agent.memory.update_spatial(x, y, nearby)
-    agent.memory.save()
-
+    detected = data.get("detected", [])
+    agents[agent_id].memory.update_spatial(detected)
     return jsonify({"status": "ok"})
 
 @app.route('/think', methods=['POST'])
@@ -57,6 +51,17 @@ def move():
         return jsonify({"offset_x": 0, "offset_y": 0})
     response = agents[agent_id].move_cycle(data)
     return jsonify(response)
+
+@app.route('/explored', methods=['POST'])
+def explored():
+    data = request.json
+    agent_id = data.get("id")
+    if agent_id not in agents:
+        return jsonify({"status": "unknown agent"})
+    x = data.get("x", 0)
+    y = data.get("y", 0)
+    agents[agent_id].memory.add_explored_zone(x, y)
+    return jsonify({"status": "ok"})
 
 if __name__ == '__main__':
     app.run(port=PORT)

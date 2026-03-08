@@ -1,6 +1,5 @@
 import time
 import json
-import math
 import os
 from agent.memory.associative_memory import AssociativeMemory
 from config import (
@@ -32,22 +31,12 @@ class Memory:
                 self.entries.pop(0)
             self.save()
 
-    def update_spatial(self, digimon_x, digimon_y, nearby):
-        if not nearby or not isinstance(nearby[0], dict):
-            return
-
+    def update_spatial(self, nearby):
         for item in nearby:
-            angle_rad = math.radians(item["angle"])
-            # Calculate object position relative to agent
-            # Assuming angle is absolute or relative to a fixed coordinate system
-            # x = sin(angle), y = cos(angle) based on angle_to_offset logic
-            obj_x = digimon_x + round(math.sin(angle_rad) * item["distance"])
-            obj_y = digimon_y + round(math.cos(angle_rad) * item["distance"])
-
             obj_name = item["object"].strip()
             self.spatial[obj_name] = {
-                "x": obj_x,
-                "y": obj_y,
+                "x": item["x"],
+                "y": item["y"],
                 "last_seen": time.time()
             }
         self.save()
@@ -140,10 +129,5 @@ class Memory:
         self.save()
 
     def add_explored_zone(self, x, y):
-        from config import EXPLORE_ZONE_RADIUS
-        for zone in self.explored_zones:
-            dx = zone["x"] - x
-            dy = zone["y"] - y
-            if (dx * dx + dy * dy) < EXPLORE_ZONE_RADIUS ** 2:
-                return
         self.explored_zones.append({"x": round(x), "y": round(y)})
+        self.save()
