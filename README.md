@@ -63,12 +63,11 @@ UE5 (body) ←→ Python (brain)
 ├── agent/
 │   ├── digimon.py               # Agent orchestrator
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
-│   ├── perception.py            # Nearby object parsing and touch detection
+│   ├── perception.py            # Touch detection
 │   ├── needs.py                 # Internal state updates and hard behavioral rules
 │   ├── movement.py              # Target resolution toward known objects
 │   ├── lore.py                  # Automatic lore generation from Digimon database
 │   ├── prompt.py                # LLM prompt construction
-│   ├── utils.py                 # Mathematical utility functions
 │   └── memory/
 │       ├── __init__.py
 │       ├── memory.py            # Main memory manager (episodic, spatial, associative)
