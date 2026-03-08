@@ -22,7 +22,7 @@ class Memory:
         self.curiosity = 50.0
         self.force_explore = False
         self.associative = AssociativeMemory()
-        self.explored_zones = []  # antes de load()
+        self.explored_zones = []
         self.load()
 
     def add(self, thought):
@@ -30,7 +30,6 @@ class Memory:
             self.entries.append(thought)
             if len(self.entries) > MEMORY_MAX_SIZE:
                 self.entries.pop(0)
-            self.save()
 
     def update_spatial(self, nearby):
         for item in nearby:
@@ -40,7 +39,7 @@ class Memory:
                 "y": item["y"],
                 "last_seen": time.time()
             }
-        self.save()
+        self.save()  # kept: called from /perception outside the think cycle
 
     def get_spatial_context(self):
         from locales import OBJECT_LABELS
@@ -120,7 +119,6 @@ class Memory:
             self.reflections.append(reflection)
             if len(self.reflections) > 5:
                 self.reflections.pop(0)
-            self.save()
 
     def get_reflections_context(self):
         if not self.reflections:
@@ -131,18 +129,15 @@ class Memory:
         self.recent_targets.append(target.strip())
         if len(self.recent_targets) > FIXATION_TARGET_COUNT:
             self.recent_targets.pop(0)
-        self.save()
 
     def get_semantic_context(self):
         return self.associative.get_semantic_context()
 
     def add_event_node(self, subject, predicate, obj, description, poignancy, keywords):
         self.associative.add_event(subject, predicate, obj, description, poignancy, keywords)
-        self.save()
 
     def add_thought_node(self, subject, predicate, obj, description, poignancy, keywords, depth=1):
         self.associative.add_thought(subject, predicate, obj, description, poignancy, keywords, depth)
-        self.save()
 
     def add_explored_zone(self, x, y):
         for zone in self.explored_zones:
@@ -151,4 +146,4 @@ class Memory:
             if (dx*dx + dy*dy) < 200**2:
                 return
         self.explored_zones.append({"x": round(x), "y": round(y)})
-        self.save()
+        self.save()  # kept: called from /explored outside the think cycle
