@@ -26,7 +26,11 @@ def think(digimon, touching="", spatial="", reflections=""):
         ]
     )
     text = response["message"]["content"].strip().replace("```json", "").replace("```", "").strip()
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        print(f"JSON parse error: {e}\nRaw LLM output: {text}")
+        return {"thought": "...", "target": "idle", "wait_time": WAIT_TIME_DEFAULT}
 
 
 def extract_keywords(text):
