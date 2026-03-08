@@ -18,34 +18,37 @@ STATE_LABELS = {
     }
 }
 
-BEHAVIOR_RULES = {
-    "en": """
+def get_behavior_rules(hunger_threshold, energy_threshold):
+    return {
+        "en": f"""
 ## Important Rules
 You can only perceive what is explicitly listed in "Nearby". Do not invent objects, lights, smells or sensations not listed there.
 If you want to move towards something, set target to the object name exactly as listed in Nearby.
 If you want to explore freely, set target to 'explore'.
 If you are currently touching an object, you have already reached it.
 If your hunger is above 50, you should go to the campfire to eat.
-If your hunger is below 30, you are SATISFIED. Do NOT target campfire. Do NOT think about food.
+If your hunger is below {hunger_threshold}, you are SATISFIED. Do NOT target campfire. Do NOT think about food.
 If your energy is below 50, you should go to the tent to rest.
-If your energy is above 80, you are RESTED. Do NOT target tent. Do NOT think about sleeping.
+If your energy is above {energy_threshold}, you are RESTED. Do NOT target tent. Do NOT think about sleeping.
 If you have nothing urgent to do, set target to 'idle'.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations. Do not translate it.
 """,
-    "es": """
+        "es": f"""
 ## Reglas Importantes
 Solo puedes percibir lo que aparece explícitamente en "Cerca". No inventes objetos, luces, olores ni sensaciones que no estén listados.
 Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal como aparece en Cerca.
 Si quieres explorar libremente, pon target como 'explore'.
 Si estás tocando un objeto, ya has llegado a él.
 Si tu hambre supera 50, deberías ir a la hoguera a comer.
-Si tu hambre está por debajo de 30, estás SACIADO. NO pongas target campfire. NO pienses en comida.
+Si tu hambre está por debajo de {hunger_threshold}, estás SACIADO. NO pongas target campfire. NO pienses en comida.
 Si tu energía está por debajo de 50, deberías ir a la tienda a descansar.
-Si tu energía está por encima de 80, estás DESCANSADO. NO pongas target tent. NO pienses en dormir.
+Si tu energía está por encima de {energy_threshold}, estás DESCANSADO. NO pongas target tent. NO pienses en dormir.
 Si no tienes nada urgente que hacer, pon target como 'idle'.
 IMPORTANTE: El valor de 'target' debe ser el nombre exacto del objeto tal como aparece en Ubicaciones conocidas. No lo traduzcas.
 """
-}
+    }
+
+
 
 PROMPT_STRINGS = {
     "en": {
