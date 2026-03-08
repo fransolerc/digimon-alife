@@ -3,6 +3,21 @@ STOPWORDS = {
     "es": {"el", "la", "los", "las", "un", "una", "es", "en", "de", "que", "con", "por", "para", "me", "mi", "se", "su", "esto", "esta", "pero", "como"}
 }
 
+STATE_LABELS = {
+    "en": {
+        "satisfied": "You are SATISFIED (hunger {h}/100). Do NOT go to the campfire.",
+        "hungry": "You are HUNGRY (hunger {h}/100). You should go to the campfire.",
+        "rested": "You are RESTED (energy {e}/100). Do NOT go to the tent.",
+        "tired": "You are TIRED (energy {e}/100). You should go to the tent.",
+    },
+    "es": {
+        "satisfied": "Estás SACIADO (hambre {h}/100). NO vayas a la hoguera.",
+        "hungry": "Tienes HAMBRE (hambre {h}/100). Deberías ir a la hoguera.",
+        "rested": "Estás DESCANSADO (energía {e}/100). NO vayas a la tienda.",
+        "tired": "Estás CANSADO (energía {e}/100). Deberías ir a la tienda.",
+    }
+}
+
 BEHAVIOR_RULES = {
     "en": """
 ## Important Rules
@@ -11,8 +26,9 @@ If you want to move towards something, set target to the object name exactly as 
 If you want to explore freely, set target to 'explore'.
 If you are currently touching an object, you have already reached it.
 If your hunger is above 50, you should go to the campfire to eat.
+If your hunger is below 30, you are SATISFIED. Do NOT target campfire. Do NOT think about food.
 If your energy is below 50, you should go to the tent to rest.
-If you are touching the campfire and hunger is below 30, you are satisfied — explore instead.
+If your energy is above 80, you are RESTED. Do NOT target tent. Do NOT think about sleeping.
 If you have nothing urgent to do, set target to 'idle'.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations. Do not translate it.
 """,
@@ -23,8 +39,9 @@ Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal com
 Si quieres explorar libremente, pon target como 'explore'.
 Si estás tocando un objeto, ya has llegado a él.
 Si tu hambre supera 50, deberías ir a la hoguera a comer.
+Si tu hambre está por debajo de 30, estás SACIADO. NO pongas target campfire. NO pienses en comida.
 Si tu energía está por debajo de 50, deberías ir a la tienda a descansar.
-Si estás tocando la hoguera y tu hambre está por debajo de 30, estás saciado — explora en su lugar.
+Si tu energía está por encima de 80, estás DESCANSADO. NO pongas target tent. NO pienses en dormir.
 Si no tienes nada urgente que hacer, pon target como 'idle'.
 IMPORTANTE: El valor de 'target' debe ser el nombre exacto del objeto tal como aparece en Ubicaciones conocidas. No lo traduzcas.
 """
