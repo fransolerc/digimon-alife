@@ -9,9 +9,16 @@ _db = None
 def _load_db():
     global _db
     if _db is None:
-        with open(DIGIMON_DB_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            _db = {entry["Name"].lower(): entry for entry in data}
+        try:
+            with open(DIGIMON_DB_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                _db = {entry["Name"].lower(): entry for entry in data}
+        except FileNotFoundError:
+            print(f"Digimon database not found at {DIGIMON_DB_PATH}. Using default lore.")
+            _db = {}
+        except json.JSONDecodeError as e:
+            print(f"Digimon database is corrupted: {e}. Using default lore.")
+            _db = {}
     return _db
 
 def generate_lore(name):
