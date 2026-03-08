@@ -1,3 +1,11 @@
+OBJECT_LABELS = {
+    "en": {},
+    "es": {
+        "campfire": "campfire (hoguera)",
+        "tent": "tent (tienda de campaña)",
+    }
+}
+
 STOPWORDS = {
     "en": {"the", "a", "an", "is", "it", "i", "to", "and", "or", "of", "in", "my", "me", "this", "that", "was", "are", "has", "have"},
     "es": {"el", "la", "los", "las", "un", "una", "es", "en", "de", "que", "con", "por", "para", "me", "mi", "se", "su", "esto", "esta", "pero", "como"}
@@ -21,6 +29,10 @@ STATE_LABELS = {
 def get_behavior_rules(hunger_threshold, energy_threshold):
     return {
         "en": f"""
+## Object Glossary
+- campfire: a fire where you can eat and restore hunger
+- tent: a shelter where you can rest and restore energy
+
 ## Important Rules
 You can only perceive what is explicitly listed in "Nearby". Do not invent objects, lights, smells or sensations not listed there.
 If you want to move towards something, set target to the object name exactly as listed in Nearby.
@@ -34,6 +46,10 @@ If you have nothing urgent to do, set target to 'idle'.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations. Do not translate it.
 """,
         "es": f"""
+## Glosario de Objetos
+- campfire: una hoguera donde puedes comer y recuperar hambre. NO es un Digimon.
+- tent: una tienda de campaña donde puedes descansar y recuperar energía. NO es un Digimon.
+
 ## Reglas Importantes
 Solo puedes percibir lo que aparece explícitamente en "Cerca". No inventes objetos, luces, olores ni sensaciones que no estén listados.
 Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal como aparece en Cerca.

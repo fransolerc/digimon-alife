@@ -43,11 +43,15 @@ class Memory:
         self.save()
 
     def get_spatial_context(self):
+        from locales import OBJECT_LABELS
+        from config import LANGUAGE
+        labels = OBJECT_LABELS.get(LANGUAGE, {})
         if not self.spatial:
             return "No known locations yet."
         lines = []
         for obj, data in self.spatial.items():
-            lines.append(f"{obj} last seen at ({data['x']:.0f}, {data['y']:.0f})")
+            display = labels.get(obj, obj)
+            lines.append(f"{display} last seen at ({data['x']:.0f}, {data['y']:.0f})")
         return "\n".join(lines)
 
     def get_context(self):
