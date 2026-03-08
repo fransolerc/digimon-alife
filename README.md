@@ -38,7 +38,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
 - [x] Automatic lore generation from Digimon database
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
-- [x] Explored zones (intelligent exploration of unvisited areas)
+- [x] Explored zones (UE5 handles exploration, notifies Python of visited zones)
 - [x] Separate perception endpoint for real-time spatial memory updates
 - [x] Multilanguage support (configurable via LANGUAGE in config.py)
 - [ ] Multiple Digimon agents (second agent in UE5)
@@ -63,7 +63,7 @@ UE5 (body) ←→ Python (brain)
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
 │   ├── perception.py            # Nearby object parsing and touch detection
 │   ├── needs.py                 # Internal state updates and hard behavioral rules
-│   ├── movement.py              # Target resolution and exploration offset
+│   ├── movement.py              # Target resolution toward known objects
 │   ├── lore.py                  # Automatic lore generation from Digimon database
 │   ├── prompt.py                # LLM prompt construction
 │   ├── utils.py                 # Mathematical utility functions
@@ -114,7 +114,8 @@ All localized strings (lore, prompts, reflections) are in `locales.py`. Adding a
 
 - **POST /think** — main thought cycle. Receives agent position (`id`, `x`, `y`), returns `thought`, `target` and `wait_time`.
 - **POST /move** — movement calculation. Returns absolute world coordinates (`target_x`, `target_y`) toward current target.
-- **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory independently of the thought cycle.
+- **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory with absolute coordinates of detected objects.
+- **POST /explored** — notifies Python when Agumon reaches an exploration destination. Stores visited zone coordinates.
 - **GET /status** — debug endpoint. Returns current internal states for all agents.
 
 ## Agent Brain
@@ -125,19 +126,24 @@ The agent has three internal states that evolve over time:
 - **Energy**: decreases over time. Restored by resting in the tent.
 - **Curiosity**: increases over time. Decreases when exploring new areas.
 
-The think and move cycles are independent. On each think cycle the agent reasons about its situation using an LLM and decides a target object, free exploration, or idle. `/move` returns the absolute world coordinates of the current target — calculated mathematically from spatial memory, not interpreted by the LLM. UE5 uses AI MoveTo to navigate there; On Success waits `wait_time` seconds before the next think cycle, On Fail triggers an immediate new think cycle.
+On each think cycle the agent reasons about its situation using an LLM and decides a target. UE5 routes the decision via Switch on String:
 
-Spatial memory is updated continuously via the `/perception` endpoint whenever AI Perception detects new objects. Every 5 cycles Agumon reflects on its recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, but respects genuine needs (hunger > 60 targeting campfire is not fixation). When exploring, Agumon prefers unvisited areas of the map using an explored zones system.
+- **Known object** (campfire, tent, etc.) → calls `/move` → receives absolute coordinates → AI MoveTo
+- **explore** → UE5 generates a random reachable point via NavMesh → AI MoveTo → notifies `/explored` on success
+- **idle** → waits wait_time seconds → new think cycle
 
-Each Digimon is identified by a unique ID sent in the POST payload. The server maintains a separate agent instance and memory file per Digimon, making it straightforward to add new agents with different identities and lore. Lore is generated automatically from the Digimon database based on the agent ID.
+On AI MoveTo success, Agumon waits `wait_time` seconds before thinking again. On fail, a new think cycle is triggered immediately.
+
+Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects, storing their absolute world coordinates. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
+
+Each Digimon is identified by a unique ID. The server maintains a separate agent instance and memory file per Digimon. Lore is generated automatically from the Digimon database.
 
 ## Memory Architecture
 
-The agent maintains three distinct memory systems:
-
-- **Episodic memory**: recent thoughts in natural language, provides short-term context
-- **Spatial memory**: known object locations with absolute world coordinates and timestamps, updated in real-time via AI Perception
-- **Associative memory**: structured nodes in subject-predicate-object format, split into events (concrete interactions) and thoughts (abstract reflections). Each node has a poignancy score and keywords for relevance-based retrieval.
+- **Episodic memory**: recent thoughts in natural language
+- **Spatial memory**: known object locations with absolute world coordinates, updated in real-time via AI Perception
+- **Associative memory**: structured nodes in subject-predicate-object format (events and thoughts), with poignancy scores and keyword-based retrieval
+- **Explored zones**: coordinates of visited exploration points, populated by UE5 via `/explored`
 
 ## Motivation
 
