@@ -6,13 +6,12 @@ from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXAT
 from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
-def think(digimon, nearby_str, touching="", spatial="", reflections=""):
+def think(digimon, touching="", spatial="", reflections=""):
     prompt = build_prompt(
         digimon.lore,
         digimon.hunger,
         digimon.energy,
         digimon.curiosity,
-        nearby_str,
         digimon.memory.get_context(),
         touching=touching,
         spatial=spatial,
@@ -93,8 +92,8 @@ def check_fixation(digimon):
     return False
 
 
-def run_thought_cycle(digimon, nearby_str, touching):
-    result = think(digimon, nearby_str, touching,
+def run_thought_cycle(digimon, touching):
+    result = think(digimon, touching,
                    digimon.memory.get_spatial_context(),
                    digimon.memory.get_reflections_context())
 

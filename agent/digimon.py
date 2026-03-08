@@ -39,7 +39,7 @@ class Digimon:
             handle_touching(self, touching)
 
             # 3. LLM reasons with the fully updated state
-            target, thought, wait_time = run_thought_cycle(self, "", touching)
+            target, thought, wait_time = run_thought_cycle(self, touching)
             self.current_target = target
 
             self.memory.hunger = self.hunger

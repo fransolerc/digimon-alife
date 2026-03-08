@@ -11,7 +11,7 @@ def _need_instructions(hunger, energy):
     return f"{hunger_str}\n{energy_str}"
 
 
-def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections="", semantic=""):
+def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial="", reflections="", semantic=""):
     s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS["en"])
     language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS["en"])
 
@@ -25,7 +25,6 @@ def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching=
 {language_instruction}
 {s["state"].format(h=f"{hunger:.0f}", e=f"{energy:.0f}", c=f"{curiosity:.0f}")}
 {need_str}
-{s["nearby"].format(nearby=nearby_str)}
 {touching_str}
 {spatial_str}
 {reflections_str}

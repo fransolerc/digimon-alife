@@ -12,24 +12,6 @@ def distance_label(distance):
     else:
         return "far away"
 
-
-def parse_nearby(nearby):
-    if nearby and isinstance(nearby[0], dict):
-        return ", ".join([
-            f"{item['object'].strip()} ({distance_label(item['distance'])})"
-            for item in nearby
-        ])
-    return "nothing..."
-
-
-def get_touching(nearby):
-    if nearby and isinstance(nearby[0], dict):
-        for item in nearby:
-            if item["distance"] < TOUCH_DISTANCE:
-                return item["object"].strip()
-    return ""
-
-
 def get_touching_from_spatial(agent_x, agent_y, spatial):
     for obj_name, data in spatial.items():
         dx = data["x"] - agent_x
