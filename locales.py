@@ -41,6 +41,7 @@ PROMPT_STRINGS = {
         "question": "What are you thinking and where do you want to go?",
         "important": "IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby.",
         "reply": "Reply ONLY with valid JSON, no extra text, no markdown:",
+        "target_hint": "object from Known locations or 'explore'",
     },
     "es": {
         "state": "Estado actual: hambre {h}/100, energía {e}/100, curiosidad {c}/100.",
@@ -57,6 +58,7 @@ PROMPT_STRINGS = {
         "question": "¿Qué estás pensando y a dónde quieres ir?",
         "important": "IMPORTANTE: El valor de 'target' debe copiarse EXACTAMENTE como aparece en Cerca.",
         "reply": "Responde SOLO con JSON válido, sin texto extra, sin markdown:",
+        "target_hint": "objeto de Ubicaciones conocidas o 'explore'",
     }
 }
 

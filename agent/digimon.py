@@ -22,7 +22,6 @@ class Digimon:
     def _update_state(self, data):
         self.x = data.get("x", 0)
         self.y = data.get("y", 0)
-        self.memory.add_explored_zone(self.x, self.y)
 
     def think_cycle(self, data):
         if self.processing:
@@ -61,5 +60,8 @@ class Digimon:
         self._update_state(data)
         if self.current_target == "idle":
             return {"target_x": 0, "target_y": 0}
-        x, y = determine_action(self, self.current_target, [])
+        result = determine_action(self, self.current_target)
+        if result is None:
+            return {"target_x": 0, "target_y": 0}
+        x, y = result
         return {"target_x": x, "target_y": y}

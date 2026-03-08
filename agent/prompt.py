@@ -24,4 +24,4 @@ def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching=
 {s["question"]}
 {s["important"]}
 {s["reply"]}
-{{"thought": "...", "target": "<{"objeto de Cerca" if LANGUAGE == "es" else "object from Nearby"} or 'explore'>", "wait_time": <{"entero" if LANGUAGE == "es" else "integer"} entre {WAIT_TIME_MIN} y {WAIT_TIME_MAX}>}}"""
+{{"thought": "...", "target": "<{s['target_hint']}>", "wait_time": <{"entero" if LANGUAGE == "es" else "integer"} entre {WAIT_TIME_MIN} y {WAIT_TIME_MAX}>}}"""

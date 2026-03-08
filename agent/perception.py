@@ -1,5 +1,3 @@
-TOUCH_DISTANCE = None  # imported from config
-
 from config import TOUCH_DISTANCE
 
 
@@ -13,7 +11,6 @@ def distance_label(distance):
     else:
         return "far away"
 
-
 def parse_nearby(nearby):
     if nearby and isinstance(nearby[0], dict):
         return ", ".join([
@@ -21,7 +18,6 @@ def parse_nearby(nearby):
             for item in nearby
         ])
     return "nothing..."
-
 
 def get_touching(nearby):
     if nearby and isinstance(nearby[0], dict):
