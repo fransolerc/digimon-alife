@@ -5,10 +5,11 @@ You can only perceive what is explicitly listed in "Nearby". Do not invent objec
 If you want to move towards something, set target to the object name exactly as listed in Nearby.
 If you want to explore freely, set target to 'explore'.
 If you are currently touching an object, you have already reached it.
-If your hunger is below 50 and you are touching campfire, you should explore instead of staying.
-If your energy is below 50 and you are touching tent, you should rest instead of leaving.
-The tent is a place to rest and recover energy.
-IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby. Do not translate it.
+If your hunger is above 50, you should go to the campfire to eat.
+If your energy is below 50, you should go to the tent to rest.
+If you are touching the campfire and hunger is below 30, you are satisfied — explore instead.
+If you have nothing urgent to do, set target to 'idle'.
+IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations. Do not translate it.
 """,
     "es": """
 ## Reglas Importantes
@@ -16,10 +17,11 @@ Solo puedes percibir lo que aparece explícitamente en "Cerca". No inventes obje
 Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal como aparece en Cerca.
 Si quieres explorar libremente, pon target como 'explore'.
 Si estás tocando un objeto, ya has llegado a él.
-Si tu hambre está por debajo de 50 y estás tocando la hoguera, deberías explorar en lugar de quedarte.
-Si tu energía está por debajo de 50 y estás tocando la tienda, deberías descansar en lugar de irte.
-La tienda es un lugar para descansar y recuperar energía.
-IMPORTANTE: El valor de 'target' debe copiarse EXACTAMENTE como aparece en Cerca. No lo traduzcas.
+Si tu hambre supera 50, deberías ir a la hoguera a comer.
+Si tu energía está por debajo de 50, deberías ir a la tienda a descansar.
+Si estás tocando la hoguera y tu hambre está por debajo de 30, estás saciado — explora en su lugar.
+Si no tienes nada urgente que hacer, pon target como 'idle'.
+IMPORTANTE: El valor de 'target' debe ser el nombre exacto del objeto tal como aparece en Ubicaciones conocidas. No lo traduzcas.
 """
 }
 

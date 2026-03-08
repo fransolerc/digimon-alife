@@ -129,5 +129,10 @@ class Memory:
         self.save()
 
     def add_explored_zone(self, x, y):
+        for zone in self.explored_zones:
+            dx = zone["x"] - x
+            dy = zone["y"] - y
+            if (dx*dx + dy*dy) < 200**2:
+                return
         self.explored_zones.append({"x": round(x), "y": round(y)})
         self.save()
