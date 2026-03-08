@@ -1,5 +1,5 @@
 # config.py
-MODEL = "gemma3:4b"
+MODEL = "llama3.2:3b"
 PORT = 5000
 
 TOUCH_DISTANCE = 200

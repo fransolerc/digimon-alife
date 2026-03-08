@@ -24,6 +24,14 @@ def handle_touching(digimon, touching):
             poignancy=6,
             keywords=["campfire", "hunger", "food"]
         )
+        digimon.memory.add_event_node(
+            subject="campfire",
+            predicate="causes",
+            obj="hunger_reduction",
+            description=f"Touching the campfire reduces hunger. After eating, hunger was {digimon.hunger:.0f}/100 — no need to eat again soon.",
+            poignancy=8,
+            keywords=["campfire", "hunger", "food", "satisfied", "eat"]
+        )
     elif touching == "tent":
         old_energy = digimon.energy
         digimon.energy = min(ENERGY_MAX, digimon.energy + ENERGY_RESTORE)
@@ -34,6 +42,14 @@ def handle_touching(digimon, touching):
             description=f"{digimon.agent_id} touched tent, energy increased from {old_energy:.0f} to {digimon.energy:.0f}",
             poignancy=6,
             keywords=["tent", "energy", "rest"]
+        )
+        digimon.memory.add_event_node(
+            subject="tent",
+            predicate="causes",
+            obj="energy_restoration",
+            description=f"Resting in the tent restores energy. After resting, energy was {digimon.energy:.0f}/100 — no need to rest again soon.",
+            poignancy=8,
+            keywords=["tent", "energy", "rest", "rested", "sleep"]
         )
 
 

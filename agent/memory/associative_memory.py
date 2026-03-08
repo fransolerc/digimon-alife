@@ -67,11 +67,12 @@ class AssociativeMemory:
         return sorted(filtered, key=lambda n: n.created, reverse=True)[:limit]
 
     def get_semantic_context(self, limit=5):
-        thoughts = [n for n in self.nodes if n.type == "thought"]
-        thoughts.sort(key=lambda n: n.poignancy, reverse=True)
-        if not thoughts:
+        # include high-poignancy events (causal nodes) alongside thoughts
+        relevant = [n for n in self.nodes if n.type == "thought" or (n.type == "event" and n.poignancy >= 8)]
+        relevant.sort(key=lambda n: n.poignancy, reverse=True)
+        if not relevant:
             return "No conceptual knowledge yet."
-        return "\n".join([f"- {n.spo_summary()}" for n in thoughts[:limit]])
+        return "\n".join([f"- {n.spo_summary()}" for n in relevant[:limit]])
 
     def to_dict(self):
         return {
