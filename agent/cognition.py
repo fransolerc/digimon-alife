@@ -1,8 +1,10 @@
 import ollama
 import json
 from agent.prompt import build_prompt
+from agent.needs import apply_hard_rules
 from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE
-from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES
+from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
+
 
 def think(digimon, nearby_str, touching="", spatial="", reflections=""):
     prompt = build_prompt(
@@ -29,8 +31,8 @@ def think(digimon, nearby_str, touching="", spatial="", reflections=""):
 
 
 def extract_keywords(text):
+    stopwords = STOPWORDS.get(LANGUAGE, STOPWORDS["en"])
     words = text.lower().split()
-    stopwords = {"the", "a", "an", "is", "it", "i", "to", "and", "or", "of", "in", "my", "me", "this"}
     keywords = []
     seen = set()
     for w in words:
@@ -69,7 +71,8 @@ def reflect(digimon):
             poignancy=7,
             keywords=extract_keywords(reflection)
         )
-        check_fixation(digimon)
+        if check_fixation(digimon):
+            digimon.memory.force_explore = True
     except Exception as e:
         print(f"Reflection error: {e}")
 
@@ -81,7 +84,6 @@ def check_fixation(digimon):
     last_targets = digimon.memory.recent_targets[-FIXATION_TARGET_COUNT:]
     if len(set(last_targets)) == 1:
         target = last_targets[0]
-        # No es fixation si la necesidad justifica el target
         if target == "campfire" and digimon.hunger > 60:
             return False
         if target == "tent" and digimon.energy < 40:
@@ -92,8 +94,6 @@ def check_fixation(digimon):
 
 
 def run_thought_cycle(digimon, nearby_str, touching):
-    from agent.needs import apply_hard_rules
-
     result = think(digimon, nearby_str, touching,
                    digimon.memory.get_spatial_context(),
                    digimon.memory.get_reflections_context())

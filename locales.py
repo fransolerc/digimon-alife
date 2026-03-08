@@ -1,3 +1,8 @@
+STOPWORDS = {
+    "en": {"the", "a", "an", "is", "it", "i", "to", "and", "or", "of", "in", "my", "me", "this", "that", "was", "are", "has", "have"},
+    "es": {"el", "la", "los", "las", "un", "una", "es", "en", "de", "que", "con", "por", "para", "me", "mi", "se", "su", "esto", "esta", "pero", "como"}
+}
+
 BEHAVIOR_RULES = {
     "en": """
 ## Important Rules
