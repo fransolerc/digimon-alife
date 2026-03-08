@@ -44,8 +44,8 @@ class ConceptNode:
             poignancy=data["poignancy"],
             keywords=data["keywords"]
         )
-        node.created = data["created"]
-        node.last_accessed = data["last_accessed"]
+        node.created = data.get("created", time.time())
+        node.last_accessed = data.get("last_accessed", node.created)
         return node
 
     def spo_summary(self):

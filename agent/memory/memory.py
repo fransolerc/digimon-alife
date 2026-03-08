@@ -1,6 +1,7 @@
 import time
 import json
 import os
+import tempfile
 from agent.memory.associative_memory import AssociativeMemory
 from config import (
     MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
@@ -21,8 +22,8 @@ class Memory:
         self.curiosity = 50.0
         self.force_explore = False
         self.associative = AssociativeMemory()
+        self.explored_zones = []  # antes de load()
         self.load()
-        self.explored_zones = []
 
     def add(self, thought):
         if thought:
@@ -56,19 +57,25 @@ class Memory:
     def save(self):
         try:
             os.makedirs(os.path.dirname(self.file), exist_ok=True)
-            with open(self.file, "w") as f:
-                json.dump({
-                    "entries": self.entries,
-                    "spatial": self.spatial,
-                    "reflections": self.reflections,
-                    "cycle_count": self.cycle_count,
-                    "recent_targets": self.recent_targets,
-                    "hunger": self.hunger,
-                    "energy": self.energy,
-                    "curiosity": self.curiosity,
-                    "associative": self.associative.to_dict(),
-                    "explored_zones": self.explored_zones
-                }, f, indent=2)
+            data = {
+                "entries": self.entries,
+                "spatial": self.spatial,
+                "reflections": self.reflections,
+                "cycle_count": self.cycle_count,
+                "recent_targets": self.recent_targets,
+                "hunger": self.hunger,
+                "energy": self.energy,
+                "curiosity": self.curiosity,
+                "associative": self.associative.to_dict(),
+                "explored_zones": self.explored_zones
+            }
+            dir_name = os.path.dirname(self.file)
+            with tempfile.NamedTemporaryFile(
+                    mode="w", dir=dir_name, delete=False, suffix=".tmp"
+            ) as tmp:
+                json.dump(data, tmp, indent=2)
+                tmp_path = tmp.name
+            os.replace(tmp_path, self.file)
         except Exception as e:
             print(f"Memory save error: {e}")
 
@@ -85,7 +92,9 @@ class Memory:
                     self.hunger = data.get("hunger", 50.0)
                     self.energy = data.get("energy", 100.0)
                     self.curiosity = data.get("curiosity", 50.0)
-                    self.associative = AssociativeMemory.from_dict(data.get("associative", {"node_count": 0, "nodes": []}))
+                    self.associative = AssociativeMemory.from_dict(
+                        data.get("associative", {"node_count": 0, "nodes": []})
+                    )
                     self.explored_zones = data.get("explored_zones", [])
             else:
                 print("No previous memory found, starting fresh.")
@@ -97,6 +106,9 @@ class Memory:
         self.spatial = {}
         self.reflections = []
         self.cycle_count = 0
+        self.recent_targets = []
+        self.explored_zones = []
+        self.associative = AssociativeMemory()
         self.save()
 
     def add_reflection(self, reflection):

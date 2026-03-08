@@ -1,4 +1,5 @@
 from agent.memory.concept_node import ConceptNode
+from config import MAX_ASSOCIATIVE_NODES
 
 class AssociativeMemory:
     def __init__(self):
@@ -8,6 +9,12 @@ class AssociativeMemory:
     def _next_id(self):
         self.node_count += 1
         return f"node_{self.node_count}"
+
+    def _trim(self):
+        if len(self.nodes) > MAX_ASSOCIATIVE_NODES:
+            # Conservar los más importantes; en empates, los más recientes
+            self.nodes.sort(key=lambda n: (n.poignancy, n.created), reverse=True)
+            self.nodes = self.nodes[:MAX_ASSOCIATIVE_NODES]
 
     def add_event(self, subject, predicate, obj, description, poignancy, keywords):
         node = ConceptNode(
@@ -22,6 +29,7 @@ class AssociativeMemory:
             keywords=keywords
         )
         self.nodes.append(node)
+        self._trim()
         return node
 
     def add_thought(self, subject, predicate, obj, description, poignancy, keywords, depth=1):
@@ -37,6 +45,7 @@ class AssociativeMemory:
             keywords=keywords
         )
         self.nodes.append(node)
+        self._trim()
         return node
 
     def get_relevant(self, keywords, node_type=None, limit=5):
@@ -48,6 +57,7 @@ class AssociativeMemory:
             overlap = len(set(keywords_lower) & {k.lower() for k in node.keywords})
             if overlap > 0:
                 score = overlap * node.poignancy
+                node.last_accessed = __import__("time").time()
                 scored.append((score, node))
         scored.sort(key=lambda x: x[0], reverse=True)
         return [node for _, node in scored[:limit]]
@@ -61,7 +71,7 @@ class AssociativeMemory:
         thoughts.sort(key=lambda n: n.poignancy, reverse=True)
         if not thoughts:
             return "No conceptual knowledge yet."
-        return "\n".join([f"- {n.description}" for n in thoughts[:limit]])
+        return "\n".join([f"- {n.spo_summary()}" for n in thoughts[:limit]])
 
     def to_dict(self):
         return {
