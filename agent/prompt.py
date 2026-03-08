@@ -3,8 +3,8 @@ from locales import PROMPT_STRINGS, LANGUAGE_INSTRUCTIONS
 
 
 def build_prompt(lore, hunger, energy, curiosity, nearby_str, history, touching="", spatial="", reflections="", semantic=""):
-    s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS[LANGUAGE])
-    language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS[LANGUAGE])
+    s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS["en"])
+    language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS["en"])
 
     touching_str = s["touching"].format(touching=touching) if touching else s["not_touching"]
     spatial_str = s["known_locations"].format(spatial=spatial) if spatial else s["no_locations"]
