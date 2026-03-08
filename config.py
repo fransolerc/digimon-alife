@@ -22,6 +22,9 @@ CURIOSITY_DECREASE = 2.0
 
 FIXATION_TARGET_COUNT = 10
 
+HUNGER_CAMPFIRE_THRESHOLD = 40  # below this → not hungry enough to eat
+ENERGY_TENT_THRESHOLD = 80      # above this → not tired enough to rest
+
 MEMORY_MAX_SIZE = 100
 MEMORY_CONTEXT_SIZE = 10
 MAX_ASSOCIATIVE_NODES = 200

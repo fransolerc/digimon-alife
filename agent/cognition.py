@@ -2,7 +2,7 @@ import ollama
 import json
 from agent.prompt import build_prompt
 from agent.needs import apply_hard_rules
-from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE
+from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
 from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
@@ -84,9 +84,9 @@ def check_fixation(digimon):
     last_targets = digimon.memory.recent_targets[-FIXATION_TARGET_COUNT:]
     if len(set(last_targets)) == 1:
         target = last_targets[0]
-        if target == "campfire" and digimon.hunger > 60:
+        if target == "campfire" and digimon.hunger > HUNGER_CAMPFIRE_THRESHOLD:
             return False
-        if target == "tent" and digimon.energy < 40:
+        if target == "tent" and digimon.energy < ENERGY_TENT_THRESHOLD:
             return False
         return True
 

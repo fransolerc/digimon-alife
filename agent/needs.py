@@ -1,7 +1,8 @@
 from config import (
     HUNGER_MAX, HUNGER_MIN, ENERGY_MAX, ENERGY_MIN, CURIOSITY_MAX,
     HUNGER_INCREASE, ENERGY_DECREASE, CURIOSITY_INCREASE,
-    HUNGER_EAT, ENERGY_RESTORE
+    HUNGER_EAT, ENERGY_RESTORE,
+    HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
 )
 
 
@@ -37,8 +38,8 @@ def handle_touching(digimon, touching):
 
 
 def apply_hard_rules(digimon, target):
-    if target == "campfire" and digimon.hunger < 40:
+    if target == "campfire" and digimon.hunger < HUNGER_CAMPFIRE_THRESHOLD:
         return "explore"
-    if target == "tent" and digimon.energy > 80:
+    if target == "tent" and digimon.energy > ENERGY_TENT_THRESHOLD:
         return "explore"
     return target
