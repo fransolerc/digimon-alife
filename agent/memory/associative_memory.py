@@ -72,7 +72,7 @@ class AssociativeMemory:
         relevant.sort(key=lambda n: n.poignancy, reverse=True)
         if not relevant:
             return "No conceptual knowledge yet."
-        return "\n".join([f"- {n.spo_summary()}" for n in relevant[:limit]])
+        return "\n".join([f"- {n.description}" for n in relevant[:limit]])
 
     def to_dict(self):
         return {
