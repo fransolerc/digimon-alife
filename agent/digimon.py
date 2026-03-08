@@ -29,12 +29,16 @@ class Digimon:
 
         self.processing = True
         try:
-            update_needs(self)
             self._update_state(data)
 
+            # 1. update needs (hunger increases, energy decreases)
+            update_needs(self)
+
+            # 2. apply touching effects BEFORE building prompt
             touching = get_touching_from_spatial(self.x, self.y, self.memory.spatial)
             handle_touching(self, touching)
 
+            # 3. LLM reasons with the fully updated state
             target, thought, wait_time = run_thought_cycle(self, "", touching)
             self.current_target = target
 
