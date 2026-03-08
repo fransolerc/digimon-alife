@@ -23,7 +23,9 @@ CURIOSITY_DECREASE = 2.0
 FIXATION_TARGET_COUNT = 10
 
 HUNGER_CAMPFIRE_THRESHOLD = 40  # below this → not hungry enough to eat
+HUNGER_FORCE_THRESHOLD = 70     # above this → force campfire regardless of LLM
 ENERGY_TENT_THRESHOLD = 80      # above this → not tired enough to rest
+ENERGY_FORCE_THRESHOLD = 30     # below this → force tent regardless of LLM
 
 MEMORY_MAX_SIZE = 100
 MEMORY_CONTEXT_SIZE = 10
