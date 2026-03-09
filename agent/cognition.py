@@ -6,7 +6,7 @@ from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXAT
 from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
-def think(digimon, touching="", spatial="", reflections=""):
+def think(digimon, touching="", spatial="", reflections="", terminal_message=""):
     prompt = build_prompt(
         digimon.lore,
         digimon.hunger,
@@ -16,7 +16,8 @@ def think(digimon, touching="", spatial="", reflections=""):
         touching=touching,
         spatial=spatial,
         reflections=reflections,
-        semantic=digimon.memory.get_semantic_context()
+        semantic=digimon.memory.get_semantic_context(),
+        terminal_message=terminal_message
     )
     response = ollama.chat(
         model=MODEL,
@@ -97,13 +98,27 @@ def check_fixation(digimon):
 
 
 def run_thought_cycle(digimon, touching):
+    terminal_message = digimon.terminal_message
+    digimon.terminal_message = ""  # consume the message
+
     result = think(digimon, touching,
                    digimon.memory.get_spatial_context(),
-                   digimon.memory.get_reflections_context())
+                   digimon.memory.get_reflections_context(),
+                   terminal_message=terminal_message)
 
     thought = result.get("thought", "")
     target = result.get("target", "explore")
+
+    # if connected to terminal, keep idle unless Agumon decides to disconnect
+    if digimon.terminal_connected and target not in ("terminal_disconnect", "idle"):
+        target = "idle"
+
     target = apply_hard_rules(digimon, target)
+
+    if target == "terminal_disconnect":
+        digimon.terminal_connected = False
+        target = "explore"
+
     wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
 
     digimon.memory.add(thought)

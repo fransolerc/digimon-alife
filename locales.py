@@ -3,6 +3,7 @@ OBJECT_LABELS = {
     "es": {
         "campfire": "campfire (hoguera)",
         "tent": "tent (tienda de campaña)",
+        "terminal": "terminal",
     }
 }
 
@@ -32,10 +33,11 @@ def get_behavior_rules(hunger_threshold, energy_threshold):
 ## Object Glossary
 - campfire: a fire where you can eat and restore hunger
 - tent: a shelter where you can rest and restore energy
+- terminal: a mysterious communication device. If you see it in Known locations and have never visited it, you should approach and investigate it out of curiosity.
 
 ## Important Rules
-You can only perceive what is explicitly listed in "Nearby". Do not invent objects, lights, smells or sensations not listed there.
-If you want to move towards something, set target to the object name exactly as listed in Nearby.
+You can only perceive what is explicitly listed in Known locations. Do not invent objects, lights, smells or sensations not listed there.
+If you want to move towards something, set target to the object name exactly as listed in Known locations.
 If you want to explore freely, set target to 'explore'.
 If you are currently touching an object, you have already reached it.
 If your hunger is above 50, you should go to the campfire to eat.
@@ -43,16 +45,18 @@ If your hunger is below {hunger_threshold}, you are SATISFIED. Do NOT target cam
 If your energy is below 50, you should go to the tent to rest.
 If your energy is above {energy_threshold}, you are RESTED. Do NOT target tent. Do NOT think about sleeping.
 If you have nothing urgent to do, set target to 'idle'.
+If you are connected to the terminal and want to leave, set target to 'terminal_disconnect'.
 IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations. Do not translate it.
 """,
         "es": f"""
 ## Glosario de Objetos
 - campfire: una hoguera donde puedes comer y recuperar hambre. NO es un Digimon.
 - tent: una tienda de campaña donde puedes descansar y recuperar energía. NO es un Digimon.
+- terminal: un dispositivo de comunicación misterioso. Si aparece en Ubicaciones conocidas y nunca lo has visitado, deberías acercarte a investigar qué es.
 
 ## Reglas Importantes
-Solo puedes percibir lo que aparece explícitamente en "Cerca". No inventes objetos, luces, olores ni sensaciones que no estén listados.
-Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal como aparece en Cerca.
+Solo puedes percibir lo que aparece explícitamente en Ubicaciones conocidas. No inventes objetos, luces, olores ni sensaciones que no estén listados.
+Si quieres moverte hacia algo, pon en target el nombre exacto del objeto tal como aparece en Ubicaciones conocidas.
 Si quieres explorar libremente, pon target como 'explore'.
 Si estás tocando un objeto, ya has llegado a él.
 Si tu hambre supera 50, deberías ir a la hoguera a comer.
@@ -60,16 +64,15 @@ Si tu hambre está por debajo de {hunger_threshold}, estás SACIADO. NO pongas t
 Si tu energía está por debajo de 50, deberías ir a la tienda a descansar.
 Si tu energía está por encima de {energy_threshold}, estás DESCANSADO. NO pongas target tent. NO pienses en dormir.
 Si no tienes nada urgente que hacer, pon target como 'idle'.
+Si estás conectado a la terminal y quieres irte, pon target como 'terminal_disconnect'.
 IMPORTANTE: El valor de 'target' debe ser el nombre exacto del objeto tal como aparece en Ubicaciones conocidas. No lo traduzcas.
 """
     }
 
 
-
 PROMPT_STRINGS = {
     "en": {
         "state": "Current state: hunger {h}/100, energy {e}/100, curiosity {c}/100.",
-        "nearby": "Nearby: {nearby}.",
         "touching": "You are currently touching: {touching}.",
         "not_touching": "You are not touching anything.",
         "known_locations": "Known locations:\n{spatial}",
@@ -79,14 +82,14 @@ PROMPT_STRINGS = {
         "learned": "What you have learned:\n{semantic}",
         "not_learned": "You have not learned anything yet.",
         "recent_thoughts": "Recent thoughts:\n{history}",
+        "terminal_message": "📡 Message received via terminal: \"{message}\"\nRespond to this message in your thought. Set target to 'terminal_disconnect' if you want to leave the terminal.",
         "question": "What are you thinking and where do you want to go?",
-        "important": "IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Nearby.",
+        "important": "IMPORTANT: The 'target' value must be copied EXACTLY as it appears in Known locations.",
         "reply": "Reply ONLY with valid JSON, no extra text, no markdown:",
         "target_hint": "object from Known locations or 'explore'",
     },
     "es": {
         "state": "Estado actual: hambre {h}/100, energía {e}/100, curiosidad {c}/100.",
-        "nearby": "Cerca: {nearby}.",
         "touching": "Estás tocando: {touching}.",
         "not_touching": "No estás tocando nada.",
         "known_locations": "Ubicaciones conocidas:\n{spatial}",
@@ -96,8 +99,9 @@ PROMPT_STRINGS = {
         "learned": "Lo que has aprendido:\n{semantic}",
         "not_learned": "Aún no has aprendido nada.",
         "recent_thoughts": "Pensamientos recientes:\n{history}",
+        "terminal_message": "📡 Mensaje recibido desde la terminal: \"{message}\"\nResponde a este mensaje en tu pensamiento. Pon target 'terminal_disconnect' si quieres desconectarte.",
         "question": "¿Qué estás pensando y a dónde quieres ir?",
-        "important": "IMPORTANTE: El valor de 'target' debe copiarse EXACTAMENTE como aparece en Cerca.",
+        "important": "IMPORTANTE: El valor de 'target' debe copiarse EXACTAMENTE como aparece en Ubicaciones conocidas.",
         "reply": "Responde SOLO con JSON válido, sin texto extra, sin markdown:",
         "target_hint": "objeto de Ubicaciones conocidas o 'explore'",
     }

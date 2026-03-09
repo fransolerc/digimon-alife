@@ -80,6 +80,29 @@ def explored():
     agents[agent_id].memory.add_explored_zone(data.get("x", 0), data.get("y", 0))
     return jsonify({"status": "ok"})
 
+@app.route('/terminal', methods=['POST'])
+def terminal():
+    data = request.json
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
+    agent = _get_or_create_agent(agent_id)
+    message = data.get("message", "").strip()
+    if message:
+        agent.terminal_message = message
+        agent.terminal_connected = True
+    return jsonify({"status": "ok"})
+
+@app.route('/terminal/disconnect', methods=['POST'])
+def terminal_disconnect():
+    data = request.json
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
+    if agent_id in agents:
+        agents[agent_id].terminal_connected = False
+        agents[agent_id].terminal_message = ""
+    return jsonify({"status": "ok"})
 
 if __name__ == '__main__':
     app.run(port=PORT)

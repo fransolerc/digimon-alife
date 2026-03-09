@@ -18,6 +18,8 @@ class Digimon:
         self.y = 0.0
         self.processing = False
         self.current_target = "explore"
+        self.terminal_connected = False
+        self.terminal_message = ""
 
     def _update_state(self, data):
         self.x = data.get("x", 0)
@@ -31,14 +33,11 @@ class Digimon:
         try:
             self._update_state(data)
 
-            # 1. update needs (hunger increases, energy decreases)
             update_needs(self)
 
-            # 2. apply touching effects BEFORE building prompt
             touching = get_touching_from_spatial(self.x, self.y, self.memory.spatial)
             handle_touching(self, touching)
 
-            # 3. LLM reasons with the fully updated state
             target, thought, wait_time = run_thought_cycle(self, touching)
             self.current_target = target
 
@@ -55,7 +54,7 @@ class Digimon:
 
         except Exception as e:
             print(f"Error: {e}")
-            return {"thought": "...", "target": "explore", "wait_time": WAIT_TIME_DEFAULT}
+            return {"thought": "...", "target": "idle", "wait_time": WAIT_TIME_DEFAULT}
 
         finally:
             self.processing = False

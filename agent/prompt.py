@@ -11,7 +11,7 @@ def _need_instructions(hunger, energy):
     return f"{hunger_str}\n{energy_str}"
 
 
-def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial="", reflections="", semantic=""):
+def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial="", reflections="", semantic="", terminal_message=""):
     s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS["en"])
     language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS["en"])
 
@@ -20,6 +20,7 @@ def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial=
     reflections_str = s["reflections"].format(reflections=reflections) if reflections else s["no_reflections"]
     semantic_str = s["learned"].format(semantic=semantic) if semantic else s["not_learned"]
     need_str = _need_instructions(hunger, energy)
+    terminal_str = s["terminal_message"].format(message=terminal_message) if terminal_message else ""
 
     return f"""{lore}
 {language_instruction}
@@ -30,7 +31,7 @@ def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial=
 {reflections_str}
 {semantic_str}
 {s["recent_thoughts"].format(history=history)}
-
+{terminal_str}
 {s["question"]}
 {s["important"]}
 {s["reply"]}
