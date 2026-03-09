@@ -1,19 +1,18 @@
 import ollama
 import json
 from agent.prompt import build_prompt
-from agent.needs import apply_hard_rules
+from agent.needs import apply_hard_rules, update_needs
 from config import MODEL, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
 from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
-def think(digimon, touching="", spatial="", reflections=""):
+def think(digimon, spatial="", reflections=""):
     prompt = build_prompt(
         digimon.lore,
         digimon.hunger,
         digimon.energy,
         digimon.curiosity,
         digimon.memory.get_context(),
-        touching=touching,
         spatial=spatial,
         reflections=reflections,
         semantic=digimon.memory.get_semantic_context()
@@ -96,8 +95,10 @@ def check_fixation(digimon):
     return False
 
 
-def run_thought_cycle(digimon, touching):
-    result = think(digimon, touching,
+def run_thought_cycle(digimon):
+    update_needs(digimon)
+
+    result = think(digimon,
                    digimon.memory.get_spatial_context(),
                    digimon.memory.get_reflections_context())
 

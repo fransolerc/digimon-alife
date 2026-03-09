@@ -1,7 +1,5 @@
 from agent.memory.memory import Memory
-from agent.needs import update_needs, handle_touching
 from agent.movement import determine_action
-from agent.perception import get_touching_from_spatial
 from agent.cognition import run_thought_cycle
 
 
@@ -18,27 +16,14 @@ class Digimon:
         self.processing = False
         self.current_target = "explore"
 
-    def _update_state(self, data):
-        self.x = data.get("x", 0)
-        self.y = data.get("y", 0)
 
-    def think_cycle(self, data):
+    def think_cycle(self):
         if self.processing:
             return {"thought": "", "target": "idle"}
 
         self.processing = True
         try:
-            self._update_state(data)
-
-            # 1. update needs (hunger increases, energy decreases)
-            update_needs(self)
-
-            # 2. apply touching effects BEFORE building prompt
-            touching = get_touching_from_spatial(self.x, self.y, self.memory.spatial)
-            handle_touching(self, touching)
-
-            # 3. LLM reasons with the fully updated state
-            target, thought = run_thought_cycle(self, touching)
+            target, thought = run_thought_cycle(self)
             self.current_target = target
 
             self.memory.hunger = self.hunger
@@ -59,7 +44,8 @@ class Digimon:
             self.processing = False
 
     def move_cycle(self, data):
-        self._update_state(data)
+        self.x = data.get("x", 0)
+        self.y = data.get("y", 0)
         if self.current_target == "idle":
             return {"target_x": 0, "target_y": 0}
         result = determine_action(self, self.current_target)

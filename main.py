@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from agent.digimon import Digimon
 from config import PORT
 from agent.lore import generate_lore
+from agent.perception import get_touching_from_spatial
+from agent.needs import handle_touching
 
 app = Flask(__name__)
 agents = {}
@@ -79,6 +81,21 @@ def explored():
         return jsonify({"status": "unknown agent"})
     agents[agent_id].memory.add_explored_zone(data.get("x", 0), data.get("y", 0))
     return jsonify({"status": "ok"})
+
+
+@app.route('/position', methods=['POST'])
+def position():
+    data = request.json
+    agent_id, err, code = _require_id(data)
+    if err:
+        return err, code
+    agent = _get_or_create_agent(agent_id)
+    agent.x = data.get("x", 0)
+    agent.y = data.get("y", 0)
+    touching = get_touching_from_spatial(agent.x, agent.y, agent.memory.spatial)
+    handle_touching(agent, touching)
+    agent.memory.save()
+    return jsonify({"status": "ok", "touching": touching})
 
 
 if __name__ == '__main__':
