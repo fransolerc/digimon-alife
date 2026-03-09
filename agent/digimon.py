@@ -3,7 +3,6 @@ from agent.needs import update_needs, handle_touching
 from agent.movement import determine_action
 from agent.perception import get_touching_from_spatial
 from agent.cognition import run_thought_cycle
-from config import WAIT_TIME_DEFAULT
 
 
 class Digimon:
@@ -25,7 +24,7 @@ class Digimon:
 
     def think_cycle(self, data):
         if self.processing:
-            return {"thought": "", "target": self.current_target, "wait_time": 3}
+            return {"thought": "", "target": "idle"}
 
         self.processing = True
         try:
@@ -39,7 +38,7 @@ class Digimon:
             handle_touching(self, touching)
 
             # 3. LLM reasons with the fully updated state
-            target, thought, wait_time = run_thought_cycle(self, touching)
+            target, thought = run_thought_cycle(self, touching)
             self.current_target = target
 
             self.memory.hunger = self.hunger
@@ -49,13 +48,12 @@ class Digimon:
 
             return {
                 "thought": thought,
-                "target": target,
-                "wait_time": wait_time
+                "target": target
             }
 
         except Exception as e:
             print(f"Error: {e}")
-            return {"thought": "...", "target": "explore", "wait_time": WAIT_TIME_DEFAULT}
+            return {"thought": "...", "target": "idle"}
 
         finally:
             self.processing = False

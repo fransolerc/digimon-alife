@@ -1,4 +1,4 @@
-from config import WAIT_TIME_MIN, WAIT_TIME_MAX, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
+from config import LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
 from locales import PROMPT_STRINGS, LANGUAGE_INSTRUCTIONS, STATE_LABELS
 
 
@@ -34,4 +34,4 @@ def build_prompt(lore, hunger, energy, curiosity, history, touching="", spatial=
 {s["question"]}
 {s["important"]}
 {s["reply"]}
-{{"thought": "...", "target": "<{s['target_hint']}>", "wait_time": <{"entero" if LANGUAGE == "es" else "integer"} entre {WAIT_TIME_MIN} y {WAIT_TIME_MAX}>}}"""""
+{{"thought": "...", "target": "<{s['target_hint']}>"}}"""

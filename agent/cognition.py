@@ -2,7 +2,7 @@ import ollama
 import json
 from agent.prompt import build_prompt
 from agent.needs import apply_hard_rules
-from config import MODEL, WAIT_TIME_MIN, WAIT_TIME_MAX, WAIT_TIME_DEFAULT, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
+from config import MODEL, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
 from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
@@ -30,7 +30,7 @@ def think(digimon, touching="", spatial="", reflections=""):
         return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"JSON parse error: {e}\nRaw LLM output: {text}")
-        return {"thought": "...", "target": "idle", "wait_time": WAIT_TIME_DEFAULT}
+        return {"thought": "...", "target": "idle"}
 
 
 def extract_keywords(text):
@@ -104,7 +104,6 @@ def run_thought_cycle(digimon, touching):
     thought = result.get("thought", "")
     target = result.get("target", "explore")
     target = apply_hard_rules(digimon, target)
-    wait_time = max(WAIT_TIME_MIN, min(WAIT_TIME_MAX, int(result.get("wait_time", WAIT_TIME_DEFAULT))))
 
     digimon.memory.add(thought)
     digimon.memory.add_target(target)
@@ -114,4 +113,4 @@ def run_thought_cycle(digimon, touching):
     if digimon.memory.cycle_count % 5 == 0:
         reflect(digimon)
 
-    return target, thought, wait_time
+    return target, thought
