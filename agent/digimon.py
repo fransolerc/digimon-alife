@@ -19,7 +19,7 @@ class Digimon:
 
     def think_cycle(self):
         if self.processing:
-            return {}
+            return {"thought": "", "target": "error"}
 
         self.processing = True
         try:
@@ -38,7 +38,7 @@ class Digimon:
 
         except Exception as e:
             print(f"Error: {e}")
-            return {}
+            return {"thought": "", "target": "error"}
 
         finally:
             self.processing = False
