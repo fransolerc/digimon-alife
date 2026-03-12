@@ -57,7 +57,7 @@ def think():
     if err:
         return err, code
     agent = _get_or_create_agent(agent_id)
-    return jsonify(agent.think_cycle(data))
+    return jsonify(agent.think_cycle())
 
 
 @app.route('/move', methods=['POST'])
