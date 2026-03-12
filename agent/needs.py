@@ -13,8 +13,20 @@ def update_needs(digimon):
     digimon.curiosity = min(CURIOSITY_MAX, digimon.curiosity + CURIOSITY_INCREASE)
 
 
+def decide_target(digimon):
+    if digimon.hunger > HUNGER_FORCE_THRESHOLD:
+        return "campfire"
+    if digimon.energy < ENERGY_FORCE_THRESHOLD:
+        return "tent"
+    if digimon.hunger > HUNGER_CAMPFIRE_THRESHOLD:
+        return "campfire"
+    if digimon.energy < ENERGY_TENT_THRESHOLD:
+        return "tent"
+    return "explore"
+
+
 def handle_touching(digimon, touching):
-    if touching == "campfire":
+    if touching == "campfire" and digimon.hunger > HUNGER_CAMPFIRE_THRESHOLD:
         old_hunger = digimon.hunger
         digimon.hunger = max(HUNGER_MIN, digimon.hunger - HUNGER_EAT)
         digimon.memory.add_event_node(
@@ -33,7 +45,7 @@ def handle_touching(digimon, touching):
             poignancy=8,
             keywords=["campfire", "hunger", "food", "satisfied", "eat"]
         )
-    elif touching == "tent":
+    elif touching == "tent" and digimon.energy < ENERGY_TENT_THRESHOLD:
         old_energy = digimon.energy
         digimon.energy = min(ENERGY_MAX, digimon.energy + ENERGY_RESTORE)
         digimon.memory.add_event_node(
@@ -52,7 +64,6 @@ def handle_touching(digimon, touching):
             poignancy=8,
             keywords=["tent", "energy", "rest", "rested", "sleep"]
         )
-
 
 def apply_hard_rules(digimon, target):
     # Force target when needs are critical

@@ -1,5 +1,5 @@
 import json
-from config import LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
+from config import LANGUAGE
 from locales import get_behavior_rules, IDENTITY_LORE, DEFAULT_LORE
 
 DIGIMON_DB_PATH = "db/digimon.json"
@@ -42,7 +42,7 @@ def generate_lore(name):
     ]
     digivolutions_str = ", ".join(digivolutions) if digivolutions else "unknown"
 
-    rules = get_behavior_rules(HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD)
+    rules = get_behavior_rules()
     identity = IDENTITY_LORE.get(LANGUAGE, IDENTITY_LORE["en"]).format(
         name=name, level=level, type_=type_,
         speciality1=speciality1, speciality2=speciality2,
@@ -52,6 +52,6 @@ def generate_lore(name):
 
 
 def _default_lore(name):
-    rules = get_behavior_rules(HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD)
+    rules = get_behavior_rules()
     identity = DEFAULT_LORE.get(LANGUAGE, DEFAULT_LORE["en"]).format(name=name)
     return identity + rules.get(LANGUAGE, rules["en"])

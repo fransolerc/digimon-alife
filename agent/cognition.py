@@ -1,9 +1,9 @@
 import ollama
 import json
 from agent.prompt import build_prompt
-from agent.needs import apply_hard_rules, update_needs
+from agent.needs import decide_target, update_needs
 from config import MODEL, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
-from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS, OVERRIDE_THOUGHTS
+from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
 
 
 def think(digimon, spatial="", reflections=""):
@@ -29,7 +29,7 @@ def think(digimon, spatial="", reflections=""):
         return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"JSON parse error: {e}\nRaw LLM output: {text}")
-        return {"thought": "...", "target": "idle"}
+        return {"thought": "..."}
 
 
 def extract_keywords(text):
@@ -95,7 +95,6 @@ def check_fixation(digimon):
     return False
 
 
-
 def run_thought_cycle(digimon):
     update_needs(digimon)
 
@@ -104,13 +103,11 @@ def run_thought_cycle(digimon):
                    digimon.memory.get_reflections_context())
 
     thought = result.get("thought", "")
-    target = result.get("target", "explore")
-    original_target = target
-    target = apply_hard_rules(digimon, target)
+    target = decide_target(digimon)
 
-    if target != original_target:
-        overrides = OVERRIDE_THOUGHTS.get(LANGUAGE, OVERRIDE_THOUGHTS["en"])
-        thought = overrides.get(original_target, thought)
+    if digimon.memory.force_explore:
+        digimon.memory.force_explore = False
+        target = "explore"
 
     digimon.memory.add(thought)
     digimon.memory.add_target(target)

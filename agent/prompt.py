@@ -30,6 +30,5 @@ def build_prompt(lore, hunger, energy, curiosity, history, spatial="", reflectio
 {s["recent_thoughts"].format(history=history)}
 
 {s["question"]}
-{s["important"]}
 {s["reply"]}
-{{"thought": "...", "target": "<{s['target_hint']}>"}}"""
+{{"thought": "..."}}"""
