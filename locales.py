@@ -173,6 +173,17 @@ Basándote en estos pensamientos, escribe una breve reflexión (2-3 frases) resu
 Responde SOLO con el texto de la reflexión, sin JSON, sin formato extra."""
 }
 
+OVERRIDE_THOUGHTS = {
+    "en": {
+        "campfire": "I'm not hungry enough to eat right now. I'll explore instead.",
+        "tent": "I don't need to rest right now. I'll explore instead.",
+    },
+    "es": {
+        "campfire": "No tengo suficiente hambre ahora mismo. Mejor exploro.",
+        "tent": "No necesito descansar ahora mismo. Mejor exploro.",
+    }
+}
+
 LANGUAGE_INSTRUCTIONS = {
     "en": "Always respond in English.",
     "es": "Responde siempre en español. Never respond in English.",

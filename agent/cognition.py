@@ -3,7 +3,7 @@ import json
 from agent.prompt import build_prompt
 from agent.needs import apply_hard_rules, update_needs
 from config import MODEL, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
-from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
+from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS, OVERRIDE_THOUGHTS
 
 
 def think(digimon, spatial="", reflections=""):
@@ -95,6 +95,7 @@ def check_fixation(digimon):
     return False
 
 
+
 def run_thought_cycle(digimon):
     update_needs(digimon)
 
@@ -104,7 +105,12 @@ def run_thought_cycle(digimon):
 
     thought = result.get("thought", "")
     target = result.get("target", "explore")
+    original_target = target
     target = apply_hard_rules(digimon, target)
+
+    if target != original_target:
+        overrides = OVERRIDE_THOUGHTS.get(LANGUAGE, OVERRIDE_THOUGHTS["en"])
+        thought = overrides.get(original_target, thought)
 
     digimon.memory.add(thought)
     digimon.memory.add_target(target)
