@@ -55,7 +55,7 @@ def think(digimon, spatial="", reflections="", context_keywords=None):
         return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"JSON parse error: {e}\nRaw LLM output: {text}")
-        return {"thought": "..."}
+        return {"thought": "JSON parse error"}
 
 
 def reflect(digimon):
