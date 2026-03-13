@@ -669,6 +669,7 @@ async function fetchData() {
     document.getElementById('status-agent').textContent = `AGENT: ${agentId}`;
 
   } catch (e) {
+    console.error('[ALIFE] fetch error:', e);
     document.getElementById('pulse').className = 'pulse offline';
     document.getElementById('error-banner').classList.add('visible');
   }
