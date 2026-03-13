@@ -7,6 +7,8 @@ from config import (
     MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
     FIXATION_TARGET_COUNT
 )
+from utils import extract_keywords
+
 
 class Memory:
     def __init__(self, agent_id):
@@ -39,7 +41,7 @@ class Memory:
                 "y": item["y"],
                 "last_seen": time.time()
             }
-        self.save()  # kept: called from /perception outside the think cycle
+        self.save()
 
     def get_spatial_context(self):
         from locales import OBJECT_LABELS
@@ -54,8 +56,23 @@ class Memory:
         return "\n".join(lines)
 
     def get_context(self):
+        if not self.entries:
+            return "Nothing yet."
+
         recent = self.entries[-MEMORY_CONTEXT_SIZE:]
-        return "\n".join(recent) if recent else "Nothing yet."
+        filtered = [recent[0]]
+
+        for entry in recent[1:]:
+            entry_keywords = set(extract_keywords(entry))
+            prev_keywords = set(extract_keywords(filtered[-1]))
+            if len(entry_keywords) == 0:
+                continue
+            overlap = len(entry_keywords & prev_keywords) / len(entry_keywords)
+            print(f"Overlap: {overlap:.2f} | Entry: {entry[:50]}")
+            if overlap < 0.4:
+                filtered.append(entry)
+
+        return "\n".join(filtered) if filtered else "Nothing yet."
 
     def save(self):
         try:
@@ -133,6 +150,14 @@ class Memory:
     def get_semantic_context(self):
         return self.associative.get_semantic_context()
 
+    def get_relevant_context(self, keywords, limit=5):
+        if not keywords:
+            return self.get_semantic_context()
+        nodes = self.associative.get_relevant(keywords, limit=limit)
+        if not nodes:
+            return self.get_semantic_context()
+        return "\n".join([f"- {n.description}" for n in nodes])
+
     def add_event_node(self, subject, predicate, obj, description, poignancy, keywords):
         self.associative.add_event(subject, predicate, obj, description, poignancy, keywords)
 
@@ -146,4 +171,4 @@ class Memory:
             if (dx*dx + dy*dy) < 200**2:
                 return
         self.explored_zones.append({"x": round(x), "y": round(y)})
-        self.save()  # kept: called from /explored outside the think cycle
+        self.save()

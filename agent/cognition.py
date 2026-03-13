@@ -3,10 +3,36 @@ import json
 from agent.prompt import build_prompt
 from agent.needs import decide_target, update_needs
 from config import MODEL, FIXATION_TARGET_COUNT, CURIOSITY_MIN, CURIOSITY_DECREASE, LANGUAGE, HUNGER_CAMPFIRE_THRESHOLD, ENERGY_TENT_THRESHOLD
-from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES, STOPWORDS
+from locales import REFLECTION_PROMPT, SYSTEM_MESSAGES
+from utils import extract_keywords
 
 
-def think(digimon, spatial="", reflections=""):
+def build_context_keywords(digimon):
+    keywords = set()
+
+    if digimon.hunger > HUNGER_CAMPFIRE_THRESHOLD:
+        keywords.update(["hunger", "campfire", "food", "eat"])
+    else:
+        keywords.update(["satisfied", "saciado"])
+
+    if digimon.energy < ENERGY_TENT_THRESHOLD:
+        keywords.update(["energy", "tent", "rest", "tired"])
+    else:
+        keywords.update(["rested", "descansado"])
+
+    for obj_name in digimon.memory.spatial.keys():
+        keywords.add(obj_name.lower())
+
+    if digimon.memory.entries:
+        last_thought_keywords = extract_keywords(digimon.memory.entries[-1])
+        keywords.update(last_thought_keywords)
+
+    return list(keywords)
+
+
+def think(digimon, spatial="", reflections="", context_keywords=None):
+    semantic = digimon.memory.get_relevant_context(context_keywords) if context_keywords else digimon.memory.get_semantic_context()
+
     prompt = build_prompt(
         digimon.lore,
         digimon.hunger,
@@ -15,7 +41,7 @@ def think(digimon, spatial="", reflections=""):
         digimon.memory.get_context(),
         spatial=spatial,
         reflections=reflections,
-        semantic=digimon.memory.get_semantic_context()
+        semantic=semantic
     )
     response = ollama.chat(
         model=MODEL,
@@ -30,19 +56,6 @@ def think(digimon, spatial="", reflections=""):
     except json.JSONDecodeError as e:
         print(f"JSON parse error: {e}\nRaw LLM output: {text}")
         return {"thought": "..."}
-
-
-def extract_keywords(text):
-    stopwords = STOPWORDS.get(LANGUAGE, STOPWORDS["en"])
-    words = text.lower().split()
-    keywords = []
-    seen = set()
-    for w in words:
-        clean = w.strip(".,!?'\"")
-        if clean not in stopwords and len(clean) > 3 and clean not in seen:
-            seen.add(clean)
-            keywords.append(clean)
-    return keywords[:8]
 
 
 def reflect(digimon):
@@ -98,9 +111,12 @@ def check_fixation(digimon):
 def run_thought_cycle(digimon):
     update_needs(digimon)
 
+    context_keywords = build_context_keywords(digimon)
+
     result = think(digimon,
                    digimon.memory.get_spatial_context(),
-                   digimon.memory.get_reflections_context())
+                   digimon.memory.get_reflections_context(),
+                   context_keywords=context_keywords)
 
     thought = result.get("thought", "")
     target = decide_target(digimon)

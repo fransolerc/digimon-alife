@@ -55,7 +55,7 @@ PROMPT_STRINGS = {
         "not_learned": "You have not learned anything yet.",
         "recent_thoughts": "Recent thoughts:\n{history}",
         "question": "What are you thinking and feeling right now?",
-        "reply": "Reply ONLY with valid JSON, no extra text, no markdown:",
+        "reply": "Reply ONLY with valid JSON, no extra text, no markdown. The thought must be a single short sentence:",
     },
     "es": {
         "state": "Estado actual: hambre {h}/100, energía {e}/100, curiosidad {c}/100.",
@@ -70,7 +70,7 @@ PROMPT_STRINGS = {
         "not_learned": "Aún no has aprendido nada.",
         "recent_thoughts": "Pensamientos recientes:\n{history}",
         "question": "¿Qué estás pensando y sintiendo en este momento?",
-        "reply": "Responde SOLO con JSON válido, sin texto extra, sin markdown:",
+        "reply": "Responde SOLO con JSON válido, sin texto extra, sin markdown. El thought debe ser una sola frase corta:",
     }
 }
 
@@ -133,14 +133,14 @@ REFLECTION_PROMPT = {
 These are your last 5 thoughts:
 {thoughts}
 
-Based on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have learned or concluded.
+Based ONLY on these thoughts, write a brief reflection (2-3 sentences) summarizing what you have observed or concluded. Do not invent experiences that do not appear in the thoughts.
 Reply ONLY with the reflection text, no JSON, no extra formatting.""",
 
     "es": """Eres {agent_name}, un Digimon curioso que habita un bosque digital.
 Estos son tus últimos 5 pensamientos:
 {thoughts}
 
-Basándote en estos pensamientos, escribe una breve reflexión (2-3 frases) resumiendo lo que has aprendido o concluido.
+Basándote ÚNICAMENTE en estos pensamientos, escribe una breve reflexión (2-3 frases) resumiendo lo que has observado o concluido. No inventes experiencias que no aparezcan en los pensamientos.
 Responde SOLO con el texto de la reflexión, sin JSON, sin formato extra."""
 }
 
