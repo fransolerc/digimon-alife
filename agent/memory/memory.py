@@ -68,7 +68,6 @@ class Memory:
             if len(entry_keywords) == 0:
                 continue
             overlap = len(entry_keywords & prev_keywords) / len(entry_keywords)
-            print(f"Overlap: {overlap:.2f} | Entry: {entry[:50]}")
             if overlap < 0.4:
                 filtered.append(entry)
 
