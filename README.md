@@ -14,7 +14,7 @@ UE5 (body) ←→ Python (brain)
 - **Unreal Engine 5** handles the 3D environment, navigation (NavMesh), animations and action execution
 - **Python + Flask** contains the agent's logic: internal states, spatial perception processing, LLM reasoning and memory
 - **Ollama + Llama 3.2 3B Instruct** runs locally as the agent's reasoning engine
-- Communication is bidirectional via **local HTTP**, frequency determined by UE5
+- Communication is bidirectional via **local HTTP**, frequency determined by the agent itself
 
 ## Current Status
 
@@ -22,8 +22,8 @@ UE5 (body) ←→ Python (brain)
 - [x] Agumon navigates a forest using NavMesh
 - [x] Internal state system (hunger, energy, curiosity)
 - [x] Spatial perception (nearby objects with angle and distance)
-- [x] LLM-based reasoning in natural language (thought only)
-- [x] Short-term memory (recent thoughts, deduplicated by keyword overlap)
+- [x] LLM-based reasoning — thought generation only (navigation handled by Python)
+- [x] Short-term memory (recent thoughts influence future decisions)
 - [x] Spatial memory (known object locations persist across perception cycles)
 - [x] Target-based movement (agent moves toward specific objects using absolute coordinates)
 - [x] Touching detection (proximity-based interaction with environment, via /position)
@@ -41,6 +41,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Separate perception endpoint for real-time spatial memory updates
 - [x] Multilanguage support (configurable via LANGUAGE in config.py)
 - [x] Causal learning from experience (campfire→hunger_reduction, tent→energy_restoration)
+- [x] Explicit need state instructions in prompt (SATISFIED/HUNGRY/RESTED/TIRED)
 - [x] Object glossary in prompt to prevent LLM hallucinations on English tags
 - [x] Full separation of LLM thought and Python-driven target selection
 - [x] Terminal communication device (experimental branch)
@@ -63,15 +64,16 @@ UE5 (body) ←→ Python (brain)
 ├── agent/
 │   ├── digimon.py               # Agent orchestrator
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
-│   ├── perception.py            # Touch detection via spatial memory
-│   ├── needs.py                 # Internal state updates and target selection logic
-│   ├── movement.py              # Target resolution toward known objects
+│   ├── perception.py            # Touch detection
+│   ├── needs.py                 # Internal state updates and need-based target selection
+│   ├── movement.py              # Target resolution toward known objects or spatial map
 │   ├── lore.py                  # Automatic lore generation from Digimon database
 │   ├── prompt.py                # LLM prompt construction
 │   └── memory/
 │       ├── __init__.py
-│       ├── memory.py            # Main memory manager (episodic, spatial, associative)
+│       ├── memory.py            # Main memory manager (episodic, spatial, associative, spatial map)
 │       ├── associative_memory.py # Associative memory with keyword-based retrieval
+│       ├── spatial_map.py       # 2D grid map for systematic exploration
 │       └── concept_node.py      # ConceptNode: SPO-structured memory unit
 ├── db/
 │   └── digimon.json             # Digimon database (name, level, type, digivolutions)
@@ -96,7 +98,7 @@ python main.py
 
 **3. Open the project in UE5 and press Play**
 
-Agumon will begin perceiving its environment, generating thoughts about its situation, and moving autonomously based on its internal needs.
+Agumon will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
 
 ## Configuration
 
@@ -133,30 +135,38 @@ The agent has three internal states that evolve over time:
 - **Energy**: decreases over time. Restored by resting in the tent.
 - **Curiosity**: increases over time. Decreases when exploring new areas.
 
-On each think cycle the LLM generates a `thought` — a free, internal reflection on the agent's situation. Navigation is handled entirely by Python via `decide_target()`, which selects a target based on current need states. UE5 routes the target via Switch on String:
+### LLM / Python Responsibility Split
 
-- **Known object** (campfire, tent, etc.) → calls `/move` → receives absolute coordinates → AI MoveTo
-- **explore** → UE5 generates a random reachable point via NavMesh → AI MoveTo → notifies `/explored` on success
-- **idle** → waits, then new think cycle
+The LLM is responsible only for generating a free internal `thought` — an expression of the agent's current mental state. All navigation decisions are owned by Python via `decide_target()` in `needs.py`, which applies a priority-ordered need hierarchy:
 
-Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
-
-`decide_target()` selects navigation targets according to this priority:
 1. Force campfire if hunger > `HUNGER_FORCE_THRESHOLD`
 2. Force tent if energy < `ENERGY_FORCE_THRESHOLD`
 3. Go to campfire if hunger > `HUNGER_CAMPFIRE_THRESHOLD`
 4. Go to tent if energy < `ENERGY_TENT_THRESHOLD`
 5. Explore otherwise
 
-Touch effects are also gated by thresholds — the agent only benefits from an object if the corresponding need is actually present.
+This separation eliminates cognitive dissonance where the agent's thoughts contradicted its actions, and produces noticeably richer, more introspective LLM output.
+
+On each think cycle UE5 routes the decision via Switch on String:
+
+- **Known object** (campfire, tent, etc.) → calls `/move` → receives absolute coordinates → AI MoveTo
+- **explore** → calls `/move` → receives spatial map target → uses as center for `Get Random Reachable Point in Radius` → AI MoveTo → notifies `/explored` on success
+- **idle** → waits wait_time seconds → new think cycle
+
+### Systematic Exploration
+
+`SpatialMap` maintains a 40×40 grid over the UE5 world (−10000 to 10000, cell size 500 UU). Cells are marked as explored when Agumon visits them and as known when objects are detected via AI Perception. When the agent explores, `get_explore_target()` returns the world-space center of the nearest unknown cell, replacing random wandering with systematic coverage. The map is serialized to `spatial_map` in the memory JSON file.
+
+Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
 
 Each Digimon is identified by a unique ID. The server maintains a separate agent instance and memory file per Digimon. Lore is generated automatically from the Digimon database.
 
 ## Memory Architecture
 
-- **Episodic memory**: recent thoughts in natural language, deduplicated by keyword overlap before being passed to the LLM to prevent context pollution
+- **Episodic memory**: recent thoughts in natural language, deduplicated by keyword overlap before being sent to the LLM (threshold 0.4, compared against all previously accepted entries)
 - **Spatial memory**: known object locations with absolute world coordinates, updated in real-time via AI Perception
-- **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and active keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
+- **Spatial map**: 2D grid tracking explored cells and object positions, used to direct exploration toward unknown areas
+- **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
 - **Explored zones**: coordinates of visited exploration points, populated by UE5 via `/explored`
 
 ## Associative Memory Retrieval
