@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from agent.digimon import Digimon
 from config import PORT
 from agent.lore import generate_lore
@@ -8,6 +8,48 @@ from agent.needs import handle_touching
 app = Flask(__name__)
 agents = {}
 
+def _cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
+
+
+@app.route('/debug/<agent_id>', methods=['GET'])
+def debug_agent(agent_id):
+    if agent_id not in agents:
+        return _cors(make_response(jsonify({"error": "agent not found"}), 404))
+    agent = agents[agent_id]
+    data = {
+        "x": agent.x,
+        "y": agent.y,
+        "hunger":    round(agent.hunger, 1),
+        "energy":    round(agent.energy, 1),
+        "curiosity": round(agent.curiosity, 1),
+        "cycle":     agent.memory.cycle_count,
+        "processing": agent.processing,
+        "current_target": agent.current_target,
+        "recent_targets": agent.memory.recent_targets,
+        "entries":   agent.memory.entries[-10:],
+        "reflections": agent.memory.reflections,
+        "spatial":   {
+            k: {"x": round(v["x"]), "y": round(v["y"])}
+            for k, v in agent.memory.spatial.items()
+        },
+        "explored_zones_count": len(agent.memory.explored_zones),
+        "associative_count": len(agent.memory.associative.nodes),
+        "spatial_map": {
+            "grid":    {f"{k[0]},{k[1]}": v for k, v in agent.memory.spatial_map.grid.items()},
+            "objects": {f"{k[0]},{k[1]}": v for k, v in agent.memory.spatial_map.objects.items()}
+        } if hasattr(agent.memory, "spatial_map") else {}
+    }
+    return _cors(make_response(jsonify(data), 200))
+
+
+@app.route('/debug/<agent_id>', methods=['OPTIONS'])
+def debug_options(agent_id):
+    resp = make_response("", 204)
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    return resp
 
 def _get_or_create_agent(agent_id):
     if agent_id not in agents:
@@ -22,21 +64,6 @@ def _require_id(data):
     if not agent_id:
         return None, jsonify({"error": "missing agent id"}), 400
     return agent_id, None, None
-
-
-@app.route('/status', methods=['GET'])
-def get_status():
-    return jsonify({
-        agent_id: {
-            "hunger": round(agent.hunger, 1),
-            "energy": round(agent.energy, 1),
-            "curiosity": round(agent.curiosity, 1),
-            "cycle": agent.memory.cycle_count,
-            "recent_targets": agent.memory.recent_targets,
-            "processing": agent.processing
-        }
-        for agent_id, agent in agents.items()
-    })
 
 
 @app.route('/perception', methods=['POST'])
