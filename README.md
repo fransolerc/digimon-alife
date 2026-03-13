@@ -45,6 +45,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Object glossary in prompt to prevent LLM hallucinations on English tags
 - [x] Full separation of LLM thought and Python-driven target selection
 - [x] Terminal communication device (experimental branch)
+- [x] Browser-based real-time dashboard (dashboard.html, polls /debug every 3s)
 - [ ] Multiple Digimon agents (second agent in UE5)
 
 ## Technologies
@@ -58,6 +59,7 @@ UE5 (body) ←→ Python (brain)
 ```
 /
 ├── main.py                      # Flask server entry point, agent registry
+├── dashboard.html               # Real-time dashboard for debugging and visualization
 ├── config.py                    # Configuration and parameters
 ├── locales.py                   # Localized strings (EN/ES) for lore, prompts and reflections
 ├── utils.py                     # Shared utilities (keyword extraction)
@@ -126,6 +128,7 @@ All localized strings (lore, prompts, reflections, stopwords, state labels, obje
 - **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory with absolute coordinates of detected objects.
 - **POST /explored** — notifies Python when Agumon reaches an exploration destination. Stores visited zone coordinates.
 - **GET /status** — debug endpoint. Returns current internal states for all agents.
+- **GET /debug/\<agent_id\>** — full agent state for the dashboard (needs, memory, spatial map, position).
 
 ## Agent Brain
 
