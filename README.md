@@ -23,7 +23,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Internal state system (hunger, energy, curiosity)
 - [x] Spatial perception (nearby objects with angle and distance)
 - [x] LLM-based reasoning in natural language (thought only)
-- [x] Short-term memory (recent thoughts influence future decisions)
+- [x] Short-term memory (recent thoughts, deduplicated by keyword overlap)
 - [x] Spatial memory (known object locations persist across perception cycles)
 - [x] Target-based movement (agent moves toward specific objects using absolute coordinates)
 - [x] Touching detection (proximity-based interaction with environment, via /position)
@@ -36,6 +36,7 @@ UE5 (body) ←→ Python (brain)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
 - [x] Automatic lore generation from Digimon database
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
+- [x] Active associative memory retrieval (keyword-based, context-aware)
 - [x] Explored zones (UE5 handles exploration, notifies Python of visited zones)
 - [x] Separate perception endpoint for real-time spatial memory updates
 - [x] Multilanguage support (configurable via LANGUAGE in config.py)
@@ -58,6 +59,7 @@ UE5 (body) ←→ Python (brain)
 ├── main.py                      # Flask server entry point, agent registry
 ├── config.py                    # Configuration and parameters
 ├── locales.py                   # Localized strings (EN/ES) for lore, prompts and reflections
+├── utils.py                     # Shared utilities (keyword extraction)
 ├── agent/
 │   ├── digimon.py               # Agent orchestrator
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
@@ -152,10 +154,14 @@ Each Digimon is identified by a unique ID. The server maintains a separate agent
 
 ## Memory Architecture
 
-- **Episodic memory**: recent thoughts in natural language (last `MEMORY_CONTEXT_SIZE` passed to LLM)
+- **Episodic memory**: recent thoughts in natural language, deduplicated by keyword overlap before being passed to the LLM to prevent context pollution
 - **Spatial memory**: known object locations with absolute world coordinates, updated in real-time via AI Perception
-- **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
+- **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and active keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
 - **Explored zones**: coordinates of visited exploration points, populated by UE5 via `/explored`
+
+## Associative Memory Retrieval
+
+On each think cycle, keywords are derived from the agent's current state — active needs, known spatial objects, and last thought. These keywords drive a scored retrieval over the associative memory nodes, combining keyword overlap with poignancy. The LLM receives the most contextually relevant nodes rather than always the same high-poignancy ones, grounding its reasoning in what matters right now.
 
 ## Causal Learning
 
@@ -164,12 +170,13 @@ When Agumon interacts with an object, a causal node is stored in associative mem
 - `campfire causes hunger_reduction` — learned after eating
 - `tent causes energy_restoration` — learned after resting
 
-These nodes have high poignancy (8) and appear in the LLM's semantic context on subsequent cycles, grounding its reasoning in learned experience.
+These nodes have high poignancy (8) and are retrieved when relevant needs are active, grounding the agent's reasoning in learned experience.
 
 ## Design Principles
 
 - **LLM provides expression, Python handles logic** — the LLM generates `thought` as a free internal reflection. Python owns all navigation, state management and rule enforcement.
 - **Python owns reliability-critical decisions** — need thresholds, target selection, fixation detection, coordinate math.
+- **Context relevance over static ranking** — associative memory retrieval is driven by the current moment, not fixed poignancy scores.
 - **Constants centralized in `config.py`** — all tunable parameters in one place.
 - **Localized strings in `locales.py`** — all prompt text, lore, and labels support EN/ES.
 
