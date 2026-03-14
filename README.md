@@ -1,6 +1,6 @@
 # Digimon ALife - Artificial Life in Unreal Engine 5
 
-An experiment in artificial life where an Agumon autonomously inhabits a digital forest, making decisions driven by an LLM-based brain with spatial perception and internal needs.
+An experiment in artificial life where a Digimon agent autonomously inhabits a digital forest, making decisions driven by an LLM-based brain with spatial perception, internal needs and simulated time.
 
 ## Description
 
@@ -11,7 +11,7 @@ The agent perceives its environment through spatial awareness, maintains interna
 UE5 (body) ←→ Python (brain)
 ```
 
-- **Unreal Engine 5** handles the 3D environment, navigation (NavMesh), animations and action execution
+- **Unreal Engine 5** handles the 3D environment, navigation (NavMesh), animations, day/night cycle and action execution
 - **Python + Flask** contains the agent's logic: internal states, spatial perception processing, LLM reasoning and memory
 - **Ollama + Llama 3.2 3B Instruct** runs locally as the agent's reasoning engine
 - Communication is bidirectional via **local HTTP**, frequency determined by the agent itself
@@ -19,14 +19,15 @@ UE5 (body) ←→ Python (brain)
 ## Current Status
 
 - [x] Bidirectional communication UE5 ↔ Python
-- [x] Agumon navigates a forest using NavMesh
+- [x] Agent navigates a forest using NavMesh
 - [x] Internal state system (hunger, energy, curiosity)
 - [x] Spatial perception (nearby objects with angle and distance)
 - [x] LLM-based reasoning — thought generation only (navigation handled by Python)
 - [x] Short-term memory (recent thoughts influence future decisions)
 - [x] Spatial memory (known object locations persist across perception cycles)
 - [x] Target-based movement (agent moves toward specific objects using absolute coordinates)
-- [x] Touching detection (proximity-based interaction with environment, via /position)
+- [x] Touching detection (proximity-based interaction with environment)
+- [x] Agent-controlled action frequency (wait_time)
 - [x] Basic interaction with environment (campfire restores hunger, tent restores energy)
 - [x] Persistent memory (save/load across sessions)
 - [x] Reflection and abstraction from episodic memory
@@ -36,15 +37,18 @@ UE5 (body) ←→ Python (brain)
 - [x] Multiple agent architecture (each Digimon has its own identity and memory)
 - [x] Automatic lore generation from Digimon database
 - [x] Associative memory (episodic events and semantic thoughts in SPO format)
-- [x] Active associative memory retrieval (keyword-based, context-aware)
 - [x] Explored zones (UE5 handles exploration, notifies Python of visited zones)
 - [x] Separate perception endpoint for real-time spatial memory updates
 - [x] Multilanguage support (configurable via LANGUAGE in config.py)
 - [x] Causal learning from experience (campfire→hunger_reduction, tent→energy_restoration)
 - [x] Explicit need state instructions in prompt (SATISFIED/HUNGRY/RESTED/TIRED)
 - [x] Object glossary in prompt to prevent LLM hallucinations on English tags
-- [x] Full separation of LLM thought and Python-driven target selection
-- [x] Terminal communication device (experimental branch)
+- [x] LLM/Python responsibility split — LLM generates thought, Python owns all navigation decisions
+- [x] Systematic exploration via spatial map (2D grid, directs agent toward unknown cells)
+- [x] Context deduplication (filters redundant entries before sending to LLM)
+- [x] Simulated time (SimClock synced with UE5 day/night cycle, 1 min real = 1 hour in-game)
+- [x] Temporal context in prompt (current time and period injected each cycle)
+- [x] Timestamps on causal memory nodes (events annotated with in-game time)
 - [x] Browser-based real-time dashboard (dashboard.html, polls /debug every 3s)
 - [ ] Multiple Digimon agents (second agent in UE5)
 
@@ -59,10 +63,10 @@ UE5 (body) ←→ Python (brain)
 ```
 /
 ├── main.py                      # Flask server entry point, agent registry
-├── dashboard.html               # Real-time dashboard for debugging and visualization
 ├── config.py                    # Configuration and parameters
 ├── locales.py                   # Localized strings (EN/ES) for lore, prompts and reflections
 ├── utils.py                     # Shared utilities (keyword extraction)
+├── dashboard.html               # Real-time browser monitor (open directly, no build step)
 ├── agent/
 │   ├── digimon.py               # Agent orchestrator
 │   ├── cognition.py             # LLM reasoning, reflection, fixation detection
@@ -76,6 +80,7 @@ UE5 (body) ←→ Python (brain)
 │       ├── memory.py            # Main memory manager (episodic, spatial, associative, spatial map)
 │       ├── associative_memory.py # Associative memory with keyword-based retrieval
 │       ├── spatial_map.py       # 2D grid map for systematic exploration
+│       ├── sim_clock.py         # Simulated time clock, synced with UE5 pitch rotation
 │       └── concept_node.py      # ConceptNode: SPO-structured memory unit
 ├── db/
 │   └── digimon.json             # Digimon database (name, level, type, digivolutions)
@@ -100,7 +105,9 @@ python main.py
 
 **3. Open the project in UE5 and press Play**
 
-Agumon will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
+The agent will begin perceiving its environment, reasoning about what it finds and deciding where to go autonomously.
+
+**4. Open `dashboard.html` in a browser to monitor the agent in real time.**
 
 ## Configuration
 
@@ -111,24 +118,23 @@ Key parameters in `config.py`:
 | `LANGUAGE` | `"es"` | Agent language (`"en"` or `"es"`) |
 | `TOUCH_DISTANCE` | `200` | Distance to consider an object as touched |
 | `FIXATION_TARGET_COUNT` | `10` | Cycles before fixation is detected |
+| `WAIT_TIME_MIN` / `MAX` | `8` / `20` | LLM wait time range in seconds |
 | `HUNGER_CAMPFIRE_THRESHOLD` | `25` | Below this hunger → agent is satisfied |
-| `HUNGER_FORCE_THRESHOLD` | `70` | Above this hunger → force campfire |
+| `HUNGER_FORCE_THRESHOLD` | `70` | Above this hunger → force campfire regardless of LLM |
 | `ENERGY_TENT_THRESHOLD` | `80` | Above this energy → agent is rested |
-| `ENERGY_FORCE_THRESHOLD` | `30` | Below this energy → force tent |
-| `MEMORY_CONTEXT_SIZE` | `5` | Number of recent thoughts passed to LLM |
+| `ENERGY_FORCE_THRESHOLD` | `30` | Below this energy → force tent regardless of LLM |
 | `MAX_ASSOCIATIVE_NODES` | `200` | Max nodes in associative memory (trimmed by poignancy) |
 
 All localized strings (lore, prompts, reflections, stopwords, state labels, object glossary) are in `locales.py`.
 
 ## HTTP Endpoints
 
-- **POST /think** — main thought cycle. Receives `id`, returns `thought` and `target`.
-- **POST /position** — position update and touch detection. Receives `id`, `x`, `y`. Returns `touching`.
+- **POST /think** — main thought cycle. Receives `id`, `x`, `y`, `pitch_rotation`. Returns `thought` and `target`.
 - **POST /move** — movement calculation. Returns absolute world coordinates (`target_x`, `target_y`) toward current target.
 - **POST /perception** — real-time spatial update. Called on every AI Perception event, updates spatial memory with absolute coordinates of detected objects.
-- **POST /explored** — notifies Python when Agumon reaches an exploration destination. Stores visited zone coordinates.
-- **GET /status** — debug endpoint. Returns current internal states for all agents.
-- **GET /debug/\<agent_id\>** — full agent state for the dashboard (needs, memory, spatial map, position).
+- **POST /explored** — notifies Python when the agent reaches an exploration destination. Stores visited zone coordinates.
+- **POST /position** — updates agent position and checks touch interactions.
+- **GET /debug/\<agent_id\>** — full agent state for the dashboard (needs, memory, spatial map, sim clock, position).
 
 ## Agent Brain
 
@@ -156,11 +162,17 @@ On each think cycle UE5 routes the decision via Switch on String:
 - **explore** → calls `/move` → receives spatial map target → uses as center for `Get Random Reachable Point in Radius` → AI MoveTo → notifies `/explored` on success
 - **idle** → waits wait_time seconds → new think cycle
 
+### Simulated Time
+
+`SimClock` maintains an in-game clock synced with UE5's DirectionalLight pitch rotation. One real minute equals one in-game hour (full day = 24 minutes). UE5 sends `pitch_rotation` on each `/think` call; Python converts it to `HH:MM` with a −90° offset (270° = 12:00).
+
+The current time and period (mañana / tarde / noche / madrugada) are injected into the LLM prompt each cycle. Causal memory nodes are annotated with in-game timestamps.
+
 ### Systematic Exploration
 
-`SpatialMap` maintains a 40×40 grid over the UE5 world (−10000 to 10000, cell size 500 UU). Cells are marked as explored when Agumon visits them and as known when objects are detected via AI Perception. When the agent explores, `get_explore_target()` returns the world-space center of the nearest unknown cell, replacing random wandering with systematic coverage. The map is serialized to `spatial_map` in the memory JSON file.
+`SpatialMap` maintains a 40×40 grid over the UE5 world (−10000 to 10000, cell size 500 UU). Cells are marked as explored when the agent visits them and as known when objects are detected via AI Perception. When exploring, `get_explore_target()` returns the world-space center of the nearest unknown cell, replacing random wandering with systematic coverage.
 
-Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects. Every 5 cycles Agumon reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
+Spatial memory is updated continuously via `/perception` whenever AI Perception detects objects. Every 5 cycles the agent reflects on recent thoughts and generates a higher-level conclusion. Fixation detection fires when the same target is chosen repeatedly, respecting genuine needs.
 
 Each Digimon is identified by a unique ID. The server maintains a separate agent instance and memory file per Digimon. Lore is generated automatically from the Digimon database.
 
@@ -171,27 +183,27 @@ Each Digimon is identified by a unique ID. The server maintains a separate agent
 - **Spatial map**: 2D grid tracking explored cells and object positions, used to direct exploration toward unknown areas
 - **Associative memory**: structured nodes in subject-predicate-object format (events, causal facts and thoughts), with poignancy scores and keyword-based retrieval. Capped at `MAX_ASSOCIATIVE_NODES`, trimmed by poignancy.
 - **Explored zones**: coordinates of visited exploration points, populated by UE5 via `/explored`
-
-## Associative Memory Retrieval
-
-On each think cycle, keywords are derived from the agent's current state — active needs, known spatial objects, and last thought. These keywords drive a scored retrieval over the associative memory nodes, combining keyword overlap with poignancy. The LLM receives the most contextually relevant nodes rather than always the same high-poignancy ones, grounding its reasoning in what matters right now.
+- **SimClock**: in-game time derived from UE5 pitch rotation, persisted across sessions
 
 ## Causal Learning
 
-When Agumon interacts with an object, a causal node is stored in associative memory:
+When the agent interacts with an object, a causal node is stored in associative memory:
 
 - `campfire causes hunger_reduction` — learned after eating
 - `tent causes energy_restoration` — learned after resting
 
-These nodes have high poignancy (8) and are retrieved when relevant needs are active, grounding the agent's reasoning in learned experience.
+These nodes have high poignancy (8), are annotated with in-game timestamps, and appear in the LLM's semantic context on subsequent cycles, grounding its reasoning in learned experience rather than pure instruction-following.
 
-## Design Principles
+## Dashboard
 
-- **LLM provides expression, Python handles logic** — the LLM generates `thought` as a free internal reflection. Python owns all navigation, state management and rule enforcement.
-- **Python owns reliability-critical decisions** — need thresholds, target selection, fixation detection, coordinate math.
-- **Context relevance over static ranking** — associative memory retrieval is driven by the current moment, not fixed poignancy scores.
-- **Constants centralized in `config.py`** — all tunable parameters in one place.
-- **Localized strings in `locales.py`** — all prompt text, lore, and labels support EN/ES.
+Open `dashboard.html` directly in a browser (no server required). Connects to the Flask server on `localhost:5000` and polls `/debug/<agent_id>` every 3 seconds. Displays:
+
+- Hunger, energy and curiosity bars
+- Current in-game time and period
+- Spatial map with explored cells, known objects and agent position
+- Thought log and reflections
+- Target history
+- Associative memory node count
 
 ## Motivation
 
