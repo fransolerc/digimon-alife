@@ -46,7 +46,7 @@ def debug_agent(agent_id):
 
 
 @app.route('/debug/<agent_id>', methods=['OPTIONS'])
-def debug_options(agent_id):
+def debug_options(_agent_id):
     resp = make_response("", 204)
     resp.headers["Access-Control-Allow-Origin"] = "*"
     resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
