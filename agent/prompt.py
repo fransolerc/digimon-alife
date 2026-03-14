@@ -11,7 +11,9 @@ def _need_instructions(hunger, energy):
     return f"{hunger_str}\n{energy_str}"
 
 
-def build_prompt(lore, hunger, energy, curiosity, history, spatial="", reflections="", semantic=""):
+def build_prompt(lore, hunger, energy, curiosity, history,
+                 spatial="", reflections="", semantic="",
+                 time_str="", period=""):
     s = PROMPT_STRINGS.get(LANGUAGE, PROMPT_STRINGS["en"])
     language_instruction = LANGUAGE_INSTRUCTIONS.get(LANGUAGE, LANGUAGE_INSTRUCTIONS["en"])
 
@@ -19,10 +21,12 @@ def build_prompt(lore, hunger, energy, curiosity, history, spatial="", reflectio
     reflections_str = s["reflections"].format(reflections=reflections) if reflections else s["no_reflections"]
     semantic_str = s["learned"].format(semantic=semantic) if semantic else s["not_learned"]
     need_str = _need_instructions(hunger, energy)
+    time_line = f"Son las {time_str} ({period})." if time_str else ""
 
     return f"""{lore}
 {language_instruction}
 {s["state"].format(h=f"{hunger:.0f}", e=f"{energy:.0f}", c=f"{curiosity:.0f}")}
+{time_line}
 {need_str}
 {spatial_str}
 {reflections_str}

@@ -4,6 +4,7 @@ import os
 import tempfile
 from agent.memory.associative_memory import AssociativeMemory
 from agent.memory.spatial_map import SpatialMap
+from agent.memory.sim_clock import SimClock
 from config import (
     MEMORY_MAX_SIZE, MEMORY_CONTEXT_SIZE,
     FIXATION_TARGET_COUNT
@@ -27,6 +28,7 @@ class Memory:
         self.associative = AssociativeMemory()
         self.explored_zones = []
         self.spatial_map = SpatialMap()
+        self.sim_clock = SimClock()
         self.load()
 
     def add(self, thought):
@@ -100,7 +102,8 @@ class Memory:
                 "curiosity": self.curiosity,
                 "associative": self.associative.to_dict(),
                 "explored_zones": self.explored_zones,
-                "spatial_map": self.spatial_map.to_dict()
+                "spatial_map": self.spatial_map.to_dict(),
+                "sim_clock": self.sim_clock.to_dict(),
             }
             dir_name = os.path.dirname(self.file)
             with tempfile.NamedTemporaryFile(
@@ -132,6 +135,7 @@ class Memory:
                     self.spatial_map = SpatialMap.from_dict(
                         data.get("spatial_map", {"grid": {}, "objects": {}})
                     )
+                    self.sim_clock = SimClock.from_dict(data.get("sim_clock", {}))
             else:
                 print("No previous memory found, starting fresh.")
         except Exception as e:
@@ -146,6 +150,7 @@ class Memory:
         self.explored_zones = []
         self.associative = AssociativeMemory()
         self.spatial_map = SpatialMap()
+        self.sim_clock = SimClock()
         self.save()
 
     def add_reflection(self, reflection):

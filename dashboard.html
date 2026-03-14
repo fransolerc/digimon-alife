@@ -18,7 +18,6 @@
     --blue:      #4fc3f7;
     --text:      #8dc9a0;
     --text-dim:  #3d6b4f;
-    --grid-size: 10px;
     --font-mono: 'Share Tech Mono', monospace;
     --font-disp: 'VT323', monospace;
   }
@@ -35,7 +34,6 @@
     overflow-x: hidden;
   }
 
-  /* scanlines overlay */
   body::after {
     content: '';
     position: fixed;
@@ -51,7 +49,6 @@
     z-index: 999;
   }
 
-  /* ── HEADER ── */
   .header {
     display: flex;
     align-items: baseline;
@@ -68,12 +65,7 @@
     text-shadow: 0 0 18px rgba(57,255,138,0.4);
     line-height: 1;
   }
-  .header .subtitle {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
+  .header .subtitle { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
   .header .spacer { flex: 1; }
   .pulse {
     width: 8px; height: 8px;
@@ -89,7 +81,6 @@
     50%       { opacity: 0.4; transform: scale(0.85); }
   }
 
-  /* ── LAYOUT ── */
   .layout {
     display: grid;
     grid-template-columns: 280px 1fr 260px;
@@ -97,7 +88,6 @@
     gap: 16px;
   }
 
-  /* ── PANELS ── */
   .panel {
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -121,14 +111,8 @@
     align-items: center;
     gap: 8px;
   }
-  .panel-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+  .panel-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* ── NEEDS ── */
   .needs-panel { grid-column: 1; grid-row: 1; }
 
   .need-row { margin-bottom: 14px; }
@@ -141,38 +125,17 @@
     text-transform: uppercase;
   }
   .need-label .name { color: var(--text-dim); }
-  .need-label .value {
-    font-family: var(--font-disp);
-    font-size: 18px;
-    line-height: 1;
-  }
-  .bar-track {
-    height: 6px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-  }
-  .bar-fill::after {
-    content: '';
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: rgba(255,255,255,0.4);
-  }
-  .bar-hunger  { background: linear-gradient(90deg, #ff6b35, #ffb830); }
-  .bar-energy  { background: linear-gradient(90deg, #1a6ef5, #4fc3f7); }
+  .need-label .value { font-family: var(--font-disp); font-size: 18px; line-height: 1; }
+  .bar-track { height: 6px; background: var(--bg3); border: 1px solid var(--border); overflow: hidden; }
+  .bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); position: relative; }
+  .bar-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: rgba(255,255,255,0.4); }
+  .bar-hunger    { background: linear-gradient(90deg, #ff6b35, #ffb830); }
+  .bar-energy    { background: linear-gradient(90deg, #1a6ef5, #4fc3f7); }
   .bar-curiosity { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
-
-  .need-hunger  .need-label .value { color: var(--amber); }
-  .need-energy  .need-label .value { color: var(--blue); }
+  .need-hunger    .need-label .value { color: var(--amber); }
+  .need-energy    .need-label .value { color: var(--blue);  }
   .need-curiosity .need-label .value { color: #c084fc; }
 
-  /* meta info */
   .meta-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -181,19 +144,8 @@
     padding-top: 14px;
     border-top: 1px solid var(--border);
   }
-  .meta-item { }
-  .meta-item .key {
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
-  .meta-item .val {
-    font-family: var(--font-disp);
-    font-size: 22px;
-    color: var(--green);
-  }
+  .meta-item .key { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+  .meta-item .val { font-family: var(--font-disp); font-size: 22px; color: var(--green); }
 
   .target-badge {
     display: inline-block;
@@ -205,48 +157,36 @@
     color: var(--green);
     margin-top: 4px;
   }
-  .target-badge.processing {
-    border-color: var(--amber);
-    color: var(--amber);
-    animation: blink 0.8s step-end infinite;
-  }
+  .target-badge.processing { border-color: var(--amber); color: var(--amber); animation: blink 0.8s step-end infinite; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-  /* ── MAP ── */
-  .map-panel {
-    grid-column: 2;
-    grid-row: 1 / 3;
-  }
-  #map-canvas {
-    display: block;
-    width: 100%;
-    image-rendering: pixelated;
-    border: 1px solid var(--border);
-  }
-  .map-legend {
-    display: flex;
-    gap: 16px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  .legend-item {
+  /* ── GAME TIME ── */
+  .gametime-block {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    gap: 14px;
   }
-  .legend-dot {
-    width: 10px; height: 10px;
-    flex-shrink: 0;
-  }
+  .gametime-block .key { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
+  #val-gametime { font-family: var(--font-disp); font-size: 38px; line-height: 1; transition: color 1s ease; }
+  #val-period   { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-top: 2px; }
+
+  .period-manana    { color: #ffd580; }
+  .period-tarde     { color: #ffb830; }
+  .period-noche     { color: #7090c8; }
+  .period-madrugada { color: #4060a8; }
+
+  /* ── MAP ── */
+  .map-panel { grid-column: 2; grid-row: 1 / 3; }
+  #map-canvas { display: block; width: 100%; image-rendering: pixelated; border: 1px solid var(--border); }
+  .map-legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); }
+  .legend-dot { width: 10px; height: 10px; flex-shrink: 0; }
 
   /* ── THOUGHTS ── */
   .thoughts-panel { grid-column: 3; grid-row: 1; }
-
-  .thought-list { }
   .thought-entry {
     padding: 7px 0;
     border-bottom: 1px solid var(--border);
@@ -257,122 +197,61 @@
     animation: fadeIn 0.4s forwards;
   }
   .thought-entry:first-child { color: #b8e8c8; }
-  .thought-entry:last-child { border-bottom: none; }
+  .thought-entry:last-child  { border-bottom: none; }
   @keyframes fadeIn { to { opacity: 1; } }
 
   /* ── REFLECTIONS ── */
   .reflections-panel { grid-column: 1; grid-row: 2; }
   .reflection-text {
-    font-size: 11.5px;
-    color: var(--text);
-    line-height: 1.6;
-    padding: 8px;
-    border-left: 2px solid var(--green-dim);
-    background: var(--bg3);
-    margin-bottom: 8px;
+    font-size: 11.5px; color: var(--text); line-height: 1.6;
+    padding: 8px; border-left: 2px solid var(--green-dim);
+    background: var(--bg3); margin-bottom: 8px;
   }
 
   /* ── TARGETS ── */
   .targets-panel { grid-column: 3; grid-row: 2; }
-  .targets-flow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .target-chip {
-    padding: 2px 7px;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    border: 1px solid;
-  }
-  .tc-explore   { border-color: var(--green-dim); color: var(--green); }
-  .tc-campfire  { border-color: #6e3a1a;          color: var(--amber); }
-  .tc-tent      { border-color: #1a3a6e;          color: var(--blue); }
-  .tc-idle      { border-color: var(--text-dim);  color: var(--text-dim); }
-  .tc-other     { border-color: var(--text-dim);  color: var(--text); }
+  .targets-flow  { display: flex; flex-wrap: wrap; gap: 4px; }
+  .target-chip   { padding: 2px 7px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border: 1px solid; }
+  .tc-explore  { border-color: var(--green-dim); color: var(--green); }
+  .tc-campfire { border-color: #6e3a1a;          color: var(--amber); }
+  .tc-tent     { border-color: #1a3a6e;          color: var(--blue);  }
+  .tc-idle     { border-color: var(--text-dim);  color: var(--text-dim); }
+  .tc-other    { border-color: var(--text-dim);  color: var(--text); }
 
-  .assoc-count {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .assoc-count span {
-    font-family: var(--font-disp);
-    font-size: 22px;
-    color: #c084fc;
-    vertical-align: middle;
-    margin-right: 4px;
-  }
+  .assoc-count { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); }
+  .assoc-count span { font-family: var(--font-disp); font-size: 22px; color: #c084fc; vertical-align: middle; margin-right: 4px; }
 
-  /* ── STATUS BAR ── */
   .statusbar {
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
+    margin-top: 16px; display: flex; align-items: center; gap: 16px;
+    font-size: 10px; color: var(--text-dim); letter-spacing: 1px;
+    border-top: 1px solid var(--border); padding-top: 10px;
   }
   .statusbar .sep { opacity: 0.3; }
 
-  /* ── AGENT SELECTOR ── */
-  .agent-select {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    align-items: center;
-  }
+  .agent-select { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
   .agent-select label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
   .agent-select input {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--green);
-    padding: 4px 10px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    width: 180px;
-    outline: none;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--green);
+    padding: 4px 10px; font-family: var(--font-mono); font-size: 12px; width: 180px; outline: none;
   }
   .agent-select input:focus { border-color: var(--green-dim); }
   .agent-select button {
-    background: none;
-    border: 1px solid var(--green-dim);
-    color: var(--green);
-    padding: 4px 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    text-transform: uppercase;
+    background: none; border: 1px solid var(--green-dim); color: var(--green);
+    padding: 4px 12px; font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
   }
   .agent-select button:hover { background: rgba(57,255,138,0.06); }
 
-  /* error banner */
   .error-banner {
-    display: none;
-    padding: 8px 14px;
-    background: rgba(255,68,68,0.1);
-    border: 1px solid rgba(255,68,68,0.3);
-    color: var(--red);
-    font-size: 11px;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
+    display: none; padding: 8px 14px;
+    background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.3);
+    color: var(--red); font-size: 11px; letter-spacing: 1px; margin-bottom: 12px;
   }
   .error-banner.visible { display: block; }
 
   @media (max-width: 900px) {
-    .layout {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
-    }
-    .map-panel { grid-column: 1; grid-row: auto; }
-    .thoughts-panel, .targets-panel, .reflections-panel { grid-column: 1; grid-row: auto; }
+    .layout { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .map-panel, .thoughts-panel, .targets-panel, .reflections-panel { grid-column: 1; grid-row: auto; }
   }
 </style>
 </head>
@@ -380,15 +259,13 @@
 
 <div class="header">
   <h1>DIGIMON ALIFE</h1>
-  <div>
-    <div class="subtitle">neural monitor v1.0</div>
-  </div>
+  <div><div class="subtitle">neural monitor v1.0</div></div>
   <div class="spacer"></div>
   <div id="pulse" class="pulse offline"></div>
 </div>
 
 <div class="agent-select">
-  <label>AGENT ID</label>
+  <label for="agent-input">AGENT ID</label>
   <input type="text" id="agent-input" value="agumon_1" />
   <button onclick="setAgent()">CONNECT</button>
 </div>
@@ -397,31 +274,19 @@
 
 <div class="layout">
 
-  <!-- NEEDS -->
   <div class="panel needs-panel">
     <div class="panel-title">NEEDS</div>
 
     <div class="need-row need-hunger">
-      <div class="need-label">
-        <span class="name">HUNGER</span>
-        <span class="value" id="val-hunger">—</span>
-      </div>
+      <div class="need-label"><span class="name">HUNGER</span><span class="value" id="val-hunger">—</span></div>
       <div class="bar-track"><div class="bar-fill bar-hunger" id="bar-hunger" style="width:0%"></div></div>
     </div>
-
     <div class="need-row need-energy">
-      <div class="need-label">
-        <span class="name">ENERGY</span>
-        <span class="value" id="val-energy">—</span>
-      </div>
+      <div class="need-label"><span class="name">ENERGY</span><span class="value" id="val-energy">—</span></div>
       <div class="bar-track"><div class="bar-fill bar-energy" id="bar-energy" style="width:0%"></div></div>
     </div>
-
     <div class="need-row need-curiosity">
-      <div class="need-label">
-        <span class="name">CURIOSITY</span>
-        <span class="value" id="val-curiosity">—</span>
-      </div>
+      <div class="need-label"><span class="name">CURIOSITY</span><span class="value" id="val-curiosity">—</span></div>
       <div class="bar-track"><div class="bar-fill bar-curiosity" id="bar-curiosity" style="width:0%"></div></div>
     </div>
 
@@ -439,9 +304,16 @@
         <div id="val-target"><span class="target-badge">—</span></div>
       </div>
     </div>
+
+    <div class="gametime-block">
+      <div class="key">TIME</div>
+      <div>
+        <div id="val-gametime">--:--</div>
+        <div id="val-period">—</div>
+      </div>
+    </div>
   </div>
 
-  <!-- MAP -->
   <div class="panel map-panel">
     <div class="panel-title">SPATIAL MAP</div>
     <canvas id="map-canvas"></canvas>
@@ -454,7 +326,6 @@
     </div>
   </div>
 
-  <!-- THOUGHTS -->
   <div class="panel thoughts-panel">
     <div class="panel-title">THOUGHTS</div>
     <div class="thought-list" id="thought-list">
@@ -462,7 +333,6 @@
     </div>
   </div>
 
-  <!-- REFLECTIONS -->
   <div class="panel reflections-panel">
     <div class="panel-title">REFLECTIONS</div>
     <div id="reflections-list">
@@ -470,7 +340,6 @@
     </div>
   </div>
 
-  <!-- TARGETS + ASSOC -->
   <div class="panel targets-panel">
     <div class="panel-title">TARGET LOG</div>
     <div class="targets-flow" id="targets-flow"></div>
@@ -489,44 +358,39 @@
   <span>POLL INTERVAL: 3s</span>
 </div>
 
-<script>
-const GRID_SIZE  = 40;
-const CELL_PX    = 10;
-const HOST       = 'http://localhost:5000';
-
+<script type="module">
+const GRID_SIZE = 40;
+const CELL_PX   = 10;
+const HOST      = 'http://localhost:5000';
 let agentId = 'agumon_1';
-let prevEntries = [];
 
 function setAgent() {
   agentId = document.getElementById('agent-input').value.trim() || 'agumon_1';
-  prevEntries = [];
   fetchData();
 }
 
-// ── canvas setup ──
 const canvas = document.getElementById('map-canvas');
 canvas.width  = GRID_SIZE * CELL_PX;
 canvas.height = GRID_SIZE * CELL_PX;
 const ctx = canvas.getContext('2d');
 
-function drawMap(spatialMap, agentGridCol, agentGridRow) {
+function getObjectColor(obj) {
+  if (obj === 'campfire') return '#c87010';
+  if (obj === 'tent')     return '#1a5a7a';
+  return '#4a3080';
+}
+
+function drawMap(spatialMap, agentCol, agentRow) {
   ctx.fillStyle = '#080c0a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   const grid    = (spatialMap && spatialMap.grid)    || {};
   const objects = (spatialMap && spatialMap.objects) || {};
-
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
       const key = `${col},${row}`;
-      const x = col * CELL_PX;
-      const y = row * CELL_PX;
-
+      const x = col * CELL_PX, y = row * CELL_PX;
       if (objects[key]) {
-        const obj = objects[key];
-        ctx.fillStyle = obj === 'campfire' ? '#c87010'
-                      : obj === 'tent'     ? '#1a5a7a'
-                      : '#4a3080';
+        ctx.fillStyle = getObjectColor(objects[key]);
       } else if (grid[key] === 'explored') {
         ctx.fillStyle = '#122a1c';
       } else {
@@ -535,46 +399,28 @@ function drawMap(spatialMap, agentGridCol, agentGridRow) {
       ctx.fillRect(x + 1, y + 1, CELL_PX - 2, CELL_PX - 2);
     }
   }
-
-  // Grid lines (subtle)
   ctx.strokeStyle = 'rgba(30,56,40,0.25)';
   ctx.lineWidth = 0.5;
   for (let i = 0; i <= GRID_SIZE; i++) {
     ctx.beginPath(); ctx.moveTo(i * CELL_PX, 0); ctx.lineTo(i * CELL_PX, canvas.height); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, i * CELL_PX); ctx.lineTo(canvas.width, i * CELL_PX); ctx.stroke();
   }
-
-  // Agent position
-  if (agentGridCol !== null && agentGridRow !== null) {
-    const ax = agentGridCol * CELL_PX + CELL_PX / 2;
-    const ay = agentGridRow * CELL_PX + CELL_PX / 2;
-    ctx.beginPath();
-    ctx.arc(ax, ay, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#39ff8a';
-    ctx.fill();
-    // después del ctx.fill() del círculo verde, añade:
-    ctx.font = '7px VT323';
-    ctx.fillStyle = '#39ff8a';
-    ctx.textAlign = 'center';
-    ctx.fillText('A', ax, ay + 2);
-    // glow
-    ctx.beginPath();
-    ctx.arc(ax, ay, 6, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(57,255,138,0.3)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+  if (agentCol !== null && agentRow !== null) {
+    const ax = agentCol * CELL_PX + CELL_PX / 2;
+    const ay = agentRow * CELL_PX + CELL_PX / 2;
+    ctx.beginPath(); ctx.arc(ax, ay, 4, 0, Math.PI * 2); ctx.fillStyle = '#39ff8a'; ctx.fill();
+    ctx.font = '7px VT323'; ctx.fillStyle = '#39ff8a'; ctx.textAlign = 'center'; ctx.fillText('A', ax, ay + 2);
+    ctx.beginPath(); ctx.arc(ax, ay, 6, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(57,255,138,0.3)'; ctx.lineWidth = 2; ctx.stroke();
   }
 }
 
-// ── needs ──
-function setBar(id, valId, value, max = 100) {
-  document.getElementById(id).style.width = `${(value / max) * 100}%`;
+function setBar(id, valId, value) {
+  document.getElementById(id).style.width = `${value}%`;
   document.getElementById(valId).textContent = value.toFixed(1);
 }
 
-// ── thoughts ──
 function renderThoughts(entries) {
-  if (!entries || entries.length === 0) return;
+  if (!entries || !entries.length) return;
   const list = document.getElementById('thought-list');
   list.innerHTML = '';
   [...entries].reverse().forEach((t, i) => {
@@ -586,10 +432,9 @@ function renderThoughts(entries) {
   });
 }
 
-// ── reflections ──
 function renderReflections(reflections) {
   const el = document.getElementById('reflections-list');
-  if (!reflections || reflections.length === 0) {
+  if (!reflections || !reflections.length) {
     el.innerHTML = '<div style="color:var(--text-dim);font-size:11px">No reflections yet.</div>';
     return;
   }
@@ -602,7 +447,6 @@ function renderReflections(reflections) {
   });
 }
 
-// ── targets ──
 function renderTargets(targets) {
   const el = document.getElementById('targets-flow');
   el.innerHTML = '';
@@ -615,7 +459,6 @@ function renderTargets(targets) {
   });
 }
 
-// ── target badge ──
 function renderTarget(target, processing) {
   const el = document.getElementById('val-target');
   el.innerHTML = '';
@@ -625,20 +468,34 @@ function renderTarget(target, processing) {
   el.appendChild(badge);
 }
 
-// ── world→grid ──
+function renderGameTime(simClock) {
+  if (!simClock) return;
+  const mins = simClock.game_minutes % 1440;
+  const h    = Math.floor(mins / 60);
+  const m    = mins % 60;
+  const gtEl = document.getElementById('val-gametime');
+  gtEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+
+  let period, cls;
+  if      (h >= 6  && h < 12) { period = 'mañana';    cls = 'period-manana'; }
+  else if (h >= 12 && h < 18) { period = 'tarde';     cls = 'period-tarde'; }
+  else if (h >= 18 && h < 22) { period = 'noche';     cls = 'period-noche'; }
+  else                         { period = 'madrugada'; cls = 'period-madrugada'; }
+
+  gtEl.className = cls;
+  document.getElementById('val-period').textContent = period;
+}
+
 function worldToGrid(wx, wy) {
-  // SpatialMap: world -10000..10000, 40 cells, center at 19.5
   const col = Math.floor((wx + 10000) / 500);
   const row = Math.floor((wy + 10000) / 500);
   if (col < 0 || col >= 40 || row < 0 || row >= 40) return [null, null];
   return [col, row];
 }
 
-// ── main fetch ──
 async function fetchData() {
-  const url = `${HOST}/debug/${agentId}`;
   try {
-    const res = await fetch(url);
+    const res = await fetch(`${HOST}/debug/${agentId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json();
 
@@ -656,13 +513,10 @@ async function fetchData() {
     renderThoughts(d.entries);
     renderReflections(d.reflections);
     renderTargets(d.recent_targets);
+    renderGameTime(d.sim_clock);
 
-    // Map
-    // Try to find agent grid position from any known spatial object + explored zones
-    // (we don't have live agent world pos here, so we center on most recent explored zone)
     const [agentCol, agentRow] = (d.x !== undefined && d.y !== undefined)
-        ? worldToGrid(d.x, d.y)
-        : [null, null];
+        ? worldToGrid(d.x, d.y) : [null, null];
     drawMap(d.spatial_map, agentCol, agentRow);
 
     document.getElementById('status-time').textContent  = `LAST UPDATE: ${new Date().toLocaleTimeString()}`;
@@ -675,8 +529,7 @@ async function fetchData() {
   }
 }
 
-// ── poll ──
-fetchData();
+await fetchData();
 setInterval(fetchData, 3000);
 </script>
 </body>

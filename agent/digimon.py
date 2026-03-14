@@ -1,7 +1,7 @@
 from agent.memory.memory import Memory
 from agent.movement import determine_action
 from agent.cognition import run_thought_cycle
-
+import traceback
 
 class Digimon:
     def __init__(self, agent_id, lore):
@@ -17,13 +17,13 @@ class Digimon:
         self.current_target = "explore"
 
 
-    def think_cycle(self):
+    def think_cycle(self, pitch_rotation=None):
         if self.processing:
             return {"thought": "", "target": "error"}
 
         self.processing = True
         try:
-            target, thought = run_thought_cycle(self)
+            target, thought = run_thought_cycle(self, pitch_rotation=pitch_rotation)
             self.current_target = target
 
             self.memory.hunger = self.hunger
@@ -36,8 +36,8 @@ class Digimon:
                 "target": target
             }
 
-        except Exception as e:
-            print(f"Error: {e}")
+        except Exception:
+            traceback.print_exc()
             return {"thought": "", "target": "error"}
 
         finally:

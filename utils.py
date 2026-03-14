@@ -8,7 +8,7 @@ def extract_keywords(text):
     keywords = []
     seen = set()
     for w in words:
-        clean = w.strip(".,!?'\"")
+        clean = w.strip(".,!?'\";:")
         if clean not in stopwords and len(clean) > 3 and clean not in seen:
             seen.add(clean)
             keywords.append(clean)

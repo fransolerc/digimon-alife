@@ -39,7 +39,8 @@ def debug_agent(agent_id):
         "spatial_map": {
             "grid":    {f"{k[0]},{k[1]}": v for k, v in agent.memory.spatial_map.grid.items()},
             "objects": {f"{k[0]},{k[1]}": v for k, v in agent.memory.spatial_map.objects.items()}
-        } if hasattr(agent.memory, "spatial_map") else {}
+        } if hasattr(agent.memory, "spatial_map") else {},
+        "sim_clock": agent.memory.sim_clock.to_dict()
     }
     return _cors(make_response(jsonify(data), 200))
 
@@ -84,7 +85,8 @@ def think():
     if err:
         return err, code
     agent = _get_or_create_agent(agent_id)
-    return jsonify(agent.think_cycle())
+    pitch = data.get("pitch_rotation")
+    return jsonify(agent.think_cycle(pitch_rotation=pitch))
 
 
 @app.route('/move', methods=['POST'])

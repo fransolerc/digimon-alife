@@ -33,6 +33,9 @@ def build_context_keywords(digimon):
 def think(digimon, spatial="", reflections="", context_keywords=None):
     semantic = digimon.memory.get_relevant_context(context_keywords) if context_keywords else digimon.memory.get_semantic_context()
 
+    time_str = digimon.memory.sim_clock.time_str()
+    period   = digimon.memory.sim_clock.period()
+
     prompt = build_prompt(
         digimon.lore,
         digimon.hunger,
@@ -41,7 +44,9 @@ def think(digimon, spatial="", reflections="", context_keywords=None):
         digimon.memory.get_context(),
         spatial=spatial,
         reflections=reflections,
-        semantic=semantic
+        semantic=semantic,
+        time_str=time_str,
+        period=period
     )
     response = ollama.chat(
         model=MODEL,
@@ -52,10 +57,15 @@ def think(digimon, spatial="", reflections="", context_keywords=None):
     )
     text = response["message"]["content"].strip().replace("```json", "").replace("```", "").strip()
     try:
-        return json.loads(text)
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}\nRaw LLM output: {text}")
-        return {"thought": "JSON parse error"}
+        parsed = json.loads(text)
+        if not isinstance(parsed, dict):
+            print(f"Unexpected LLM output type: {type(parsed)}\nRaw: {text}")
+            return {"thought": str(parsed)}
+        return parsed
+    except json.JSONDecodeError:
+        if text and not text.startswith("{"):
+            return {"thought": text[:200]}
+    return {"thought": "..."}
 
 
 def reflect(digimon):
@@ -108,8 +118,11 @@ def check_fixation(digimon):
     return False
 
 
-def run_thought_cycle(digimon):
+def run_thought_cycle(digimon, pitch_rotation=None):
     update_needs(digimon)
+
+    if pitch_rotation is not None:
+        digimon.memory.sim_clock.update(pitch_rotation)
 
     context_keywords = build_context_keywords(digimon)
 

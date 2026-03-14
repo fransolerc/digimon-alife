@@ -26,6 +26,8 @@ def decide_target(digimon):
 
 
 def handle_touching(digimon, touching):
+    time_str = digimon.memory.sim_clock.time_str()
+
     if touching == "campfire" and digimon.hunger > HUNGER_CAMPFIRE_THRESHOLD:
         old_hunger = digimon.hunger
         digimon.hunger = max(HUNGER_MIN, digimon.hunger - HUNGER_EAT)
@@ -33,7 +35,7 @@ def handle_touching(digimon, touching):
             subject=digimon.agent_id,
             predicate="touched",
             obj="campfire",
-            description=f"{digimon.agent_id} touched campfire, hunger decreased from {old_hunger:.0f} to {digimon.hunger:.0f}",
+            description=f"[{time_str}] {digimon.agent_id} touched campfire, hunger decreased from {old_hunger:.0f} to {digimon.hunger:.0f}",
             poignancy=6,
             keywords=["campfire", "hunger", "food"]
         )
@@ -41,7 +43,7 @@ def handle_touching(digimon, touching):
             subject="campfire",
             predicate="causes",
             obj="hunger_reduction",
-            description=f"Touching the campfire reduces hunger. After eating, hunger was {digimon.hunger:.0f}/100 — no need to eat again soon.",
+            description=f"[{time_str}] Touching the campfire reduces hunger. After eating, hunger was {digimon.hunger:.0f}/100 — no need to eat again soon.",
             poignancy=8,
             keywords=["campfire", "hunger", "food", "satisfied", "eat"]
         )
@@ -52,7 +54,7 @@ def handle_touching(digimon, touching):
             subject=digimon.agent_id,
             predicate="touched",
             obj="tent",
-            description=f"{digimon.agent_id} touched tent, energy increased from {old_energy:.0f} to {digimon.energy:.0f}",
+            description=f"[{time_str}] {digimon.agent_id} touched tent, energy increased from {old_energy:.0f} to {digimon.energy:.0f}",
             poignancy=6,
             keywords=["tent", "energy", "rest"]
         )
@@ -60,7 +62,7 @@ def handle_touching(digimon, touching):
             subject="tent",
             predicate="causes",
             obj="energy_restoration",
-            description=f"Resting in the tent restores energy. After resting, energy was {digimon.energy:.0f}/100 — no need to rest again soon.",
+            description=f"[{time_str}] Resting in the tent restores energy. After resting, energy was {digimon.energy:.0f}/100 — no need to rest again soon.",
             poignancy=8,
             keywords=["tent", "energy", "rest", "rested", "sleep"]
         )
